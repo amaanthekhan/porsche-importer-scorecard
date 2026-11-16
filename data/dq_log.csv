@@ -1,0 +1,5 @@
+importer_id,quarter,kpi_id,rule,action,value
+IMP03,FY-Q4,C2,R3 zero on a rate that cannot be zero,excluded; imputed with importer's mean of other quarters,0.0
+IMP07,FY-Q3,B1,R1 completeness,excluded; imputed with importer's mean of other quarters,
+IMP12,FY-Q2,A3,R2 plausible range,excluded; imputed with importer's mean of other quarters,982.0
+IMP09,FY-Q1,D1,R4 outlier vs own history (>4 pooled SD),excluded pending confirmation; imputed with importer's mean of other quarters,31.0

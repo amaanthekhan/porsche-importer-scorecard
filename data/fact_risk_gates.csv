@@ -1,0 +1,17 @@
+importer_id,current_ratio,net_debt_to_ebitda,open_high_findings,reporting_completeness_pct,gate_status,gate_reasons
+IMP01,1.76,2.05,1,95.9,AMBER,integrity: open high-severity finding(s)
+IMP02,1.74,3.25,1,97.3,AMBER,integrity: open high-severity finding(s); financial: liquidity/leverage watch
+IMP03,1.64,1.8,0,94.7,AMBER,data: reporting completeness < 95%
+IMP04,1.86,3.03,1,96.9,AMBER,integrity: open high-severity finding(s); financial: liquidity/leverage watch
+IMP05,1.33,3.4,1,100.0,AMBER,integrity: open high-severity finding(s); financial: liquidity/leverage watch
+IMP06,2.06,1.24,0,97.4,GREEN,
+IMP07,1.69,2.5,1,100.0,AMBER,integrity: open high-severity finding(s)
+IMP08,1.32,0.65,0,98.4,GREEN,
+IMP09,1.51,3.52,2,97.5,AMBER,integrity: open high-severity finding(s); financial: liquidity/leverage watch
+IMP10,1.24,0.69,0,97.3,GREEN,
+IMP11,1.36,3.36,4,95.9,RED,integrity: >=3 open high-severity findings; financial: liquidity/leverage watch
+IMP12,1.84,2.94,0,98.8,GREEN,
+IMP13,0.94,3.57,0,90.7,RED,financial: liquidity/leverage breach; data: reporting completeness < 95%
+IMP14,1.47,1.88,1,100.0,AMBER,integrity: open high-severity finding(s)
+IMP15,1.83,0.59,0,92.3,AMBER,data: reporting completeness < 95%
+IMP16,1.76,1.75,0,100.0,GREEN,

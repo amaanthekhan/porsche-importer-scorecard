@@ -1,0 +1,40 @@
+// Importer Performance Scorecard - core measures for Power BI
+// Model: dim_importer, dim_kpi, dim_pillar, dim_quarter, fact_kpi_quarterly, fact_risk_gates (see README).
+// STATUS: written as a design; NOT yet executed in Power BI Desktop. Validate against data/fact_scorecard.csv.
+// Relationships: fact_kpi_quarterly[importer_id] -> dim_importer ; [kpi_id] -> dim_kpi ; [quarter] -> dim_quarter ;
+//                dim_kpi[pillar_id] -> dim_pillar ; fact_risk_gates[importer_id] -> dim_importer.
+
+KPI Attainment :=
+VAR Actual = AVERAGE ( fact_kpi_quarterly[value_used] )
+VAR Target = SELECTEDVALUE ( dim_kpi[target] )
+VAR HigherBetter = SELECTEDVALUE ( dim_kpi[direction] ) = "higher is better"
+RETURN
+    MIN ( 1.1, IF ( HigherBetter, DIVIDE ( Actual, Target ), DIVIDE ( Target, Actual ) ) )
+
+Pillar Score :=
+SUMX (
+    VALUES ( dim_kpi[kpi_id] ),
+    [KPI Attainment] * CALCULATE ( MAX ( dim_kpi[weight_in_pillar] ) )
+) * 100
+
+Total Score :=
+SUMX (
+    VALUES ( dim_pillar[pillar_id] ),
+    [Pillar Score] * CALCULATE ( MAX ( dim_pillar[base_weight] ) )
+)
+
+Eligible :=
+IF ( SELECTEDVALUE ( fact_risk_gates[gate_status] ) <> "RED", 1, 0 )
+
+Rank (eligible) :=
+IF (
+    [Eligible] = 1,
+    RANKX ( FILTER ( ALL ( dim_importer[importer_id] ), [Eligible] = 1 ), [Total Score], , DESC )
+)
+
+// Optional: make pillar weights a what-if parameter instead of dim_pillar[base_weight]
+// (Modeling > New parameter, one per pillar, then replace MAX ( dim_pillar[base_weight] ) with a SWITCH on pillar_id).
+
+Gap to Leader (weighted points) :=
+VAR LeaderScore = MAXX ( FILTER ( ALL ( dim_importer[importer_id] ), [Eligible] = 1 ), [Total Score] )
+RETURN [Total Score] - LeaderScore

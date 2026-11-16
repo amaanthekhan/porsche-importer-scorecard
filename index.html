@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Importer Performance Scorecard: a public-framework prototype</title>
+<meta name="description" content="Independent portfolio project: a KPI framework, transparent scoring method, weight-sensitivity test, data-quality rules and Power BI-ready model for importer performance steering. Importer data is synthetic.">
+<style>
+:root{--ink:#14181f;--muted:#5b6573;--line:#e3e6ea;--bg:#fafaf8;--card:#fff;--accent:#b5121b;--green:#1f7a4d;--amber:#b7791f;--red:#b5121b;
+--pa:#b5121b;--pb:#25527a;--pc:#c58b1a;--pd:#4f7a5a;--pe:#6b5b95}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+a{color:var(--accent)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 22px}
+.notice{background:#14181f;color:#e9ecf0;font-size:13.5px;padding:9px 0}
+.notice b{color:#fff}
+header.hero{padding:54px 0 30px}
+.eyebrow{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:10px 0 16px;letter-spacing:-.02em}
+.lede{font-size:19px;color:#2b3340;max-width:760px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:30px 0 6px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .n{font-size:30px;font-weight:700;letter-spacing:-.02em}
+.stat .l{font-size:13.5px;color:var(--muted);line-height:1.35}
+nav.toc{position:sticky;top:0;background:rgba(250,250,248,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:5}
+nav.toc .wrap{display:flex;gap:18px;overflow-x:auto;padding:10px 22px;font-size:14px;white-space:nowrap}
+nav.toc a{color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--ink)}
+section{padding:46px 0 8px}
+h2{font-size:28px;letter-spacing:-.01em;margin:0 0 6px}
+h3{font-size:18px;margin:26px 0 8px}
+.sub{color:var(--muted);margin:0 0 20px;max-width:780px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.03em}
+.tag.real{background:#e6f3ec;color:var(--green)}
+.tag.syn{background:#fbefd9;color:#8a5a0b}
+.tag.derived{background:#eceff3;color:#46505e}
+.GREEN{color:var(--green);font-weight:700}.AMBER{color:var(--amber);font-weight:700}.RED{color:var(--red);font-weight:700}
+.callout{border-left:4px solid var(--accent);background:#fff;padding:14px 18px;border-radius:0 10px 10px 0;margin:18px 0}
+.callout.syn{border-color:var(--amber);background:#fffaf0}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+pre{background:#14181f;color:#e8ebf0;padding:16px 18px;border-radius:12px;overflow:auto;line-height:1.5}
+.small{font-size:13.5px;color:var(--muted)}
+svg text{font-family:inherit}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 18px;margin:8px 0 14px}
+.controls label{font-size:13px;color:var(--muted);display:block}
+.controls input[type=range]{width:100%}
+button{font:inherit;font-size:13.5px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:#b8bec7}
+.rowbtn{cursor:pointer}
+.rowbtn:hover td{background:#f4f5f7}
+.rowbtn.sel td{background:#fdf0f0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:6px 0 10px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+ul.tight{margin:6px 0 0 18px;padding:0}ul.tight li{margin:3px 0}
+footer{padding:44px 0 70px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="notice"><div class="wrap"><b>Independent portfolio project by Amaan Khan.</b> Not affiliated with, endorsed by or produced for Porsche. <b>All importer-level numbers on this page are synthetic</b> and describe no real importer. Regional figures are from Porsche's public press releases and are cited.</div></div>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Business performance · importer network steering</div>
+  <h1>An importer scorecard you could defend in front of the importer</h1>
+  <p class="lede">A prototype of the thing a business-performance team has to own: a KPI framework tied to the publicly stated Importer of the Year criteria, a scoring method that can be explained line by line, a test of how much the ranking depends on the weights, data-quality rules that run before anything is scored, and a data model ready for Power BI.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">9,628</div><div class="l">new Porsche vehicles delivered across the Middle East, Africa, Levant and India region in 2025, +1% on 2024 <span class="tag real">PUBLIC</span></div></div>
+    <div class="stat"><div class="n">14 KPIs · 5 pillars</div><div class="l">in the proposed framework, plus 3 risk gates that decide eligibility <span class="tag syn">PROPOSAL</span></div></div>
+    <div class="stat"><div class="n" id="s-lead">-</div><div class="l">is first in <span id="s-lead-p"></span> of 5,000 random weight sets; mid-table positions move <span class="tag syn">SYNTHETIC</span></div></div>
+    <div class="stat"><div class="n">4 of 4</div><div class="l">deliberately injected data errors caught before scoring, with no false alarms in this run <span class="tag syn">SYNTHETIC</span></div></div>
+  </div>
+</div></header>
+
+<nav class="toc"><div class="wrap">
+<a href="#context">1 Context</a><a href="#framework">2 Framework</a><a href="#method">3 Method</a><a href="#results">4 Scorecard</a><a href="#sens">5 Sensitivity</a><a href="#dq">6 Data quality</a><a href="#model">7 Power BI model</a><a href="#map">8 Role fit</a><a href="#limits">9 Limits</a>
+</div></nav>
+
+<main class="wrap">
+
+<section id="context">
+  <h2>1 · Where the region stands <span class="tag real">PUBLIC DATA</span></h2>
+  <p class="sub">The only performance data that is genuinely public is regional. It sets the context a scorecard has to live in: growth since 2020, a record 911 share, and a sharp 2026 slowdown that the release links partly to the conflict in the Middle East.</p>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">New-vehicle deliveries, Middle East, Africa, Levant and India</h3><div id="chart-deliv"></div>
+      <div class="legend"><span><i style="background:#14181f"></i>reported by Porsche</span><span><i style="background:#b8bec7"></i>derived from reported growth rates (approximate)</span></div>
+      <p class="small">2019: Porsche's 2019 results release. 2024 and 2025: Porsche newsroom. 2020, 2022 and 2023 are back-calculated from "+55% since 2020", "+4% in 2024" and "+11% the year prior", so treat them as approximate. 2021 was not stated.</p></div>
+    <div class="card"><h3 style="margin-top:0">What the numbers say</h3>
+      <ul class="tight">
+        <li><b>+55% since 2020</b>, roughly 9% a year compounded (implied 2020 base of about 6,200). 2025 was the region's best year in 12 years.</li>
+        <li><b>The 911 grew from 15% to 23%</b> of regional sales between 2020 and 2025: mix is moving toward the high-performance end.</li>
+        <li><b>Growth is flattening:</b> +11% (2023), +4% (2024), +1% (2025).</li>
+        <li><b>Network investment in 2025:</b> four new Porsche Centres, three renovations, three Porsche Now locations.</li>
+        <li><b>Global 2025:</b> 279,449 deliveries worldwide, down 10%.</li>
+        <li><b>H1 2026:</b> the "Overseas and Emerging Markets" sales region fell 18% (30,158 to 24,877) against 16% worldwide; Porsche names the Middle East conflict and the end of 718 combustion production as contributing factors and does not quantify either. That sales region is broader than the Middle East and Africa office's territory, so it is a context signal, not the same population.</li>
+      </ul>
+      <div class="callout"><b>Why this matters for a scorecard:</b> when volume is under pressure for reasons outside an importer's control, a volume-only ranking punishes the wrong thing. That is the argument for scoring quality and loyalty pillars alongside sales, and for showing attainment against a target that moves with the market.</div>
+    </div>
+  </div>
+  <p class="small">Sources: <a href="https://newsroom.porsche.com/en_PME/2026/company/porsche-middle-east-africa-region-sales-result-2025-41577.html">Porsche Middle East and Africa 2025 sales result</a> · <a href="https://newsroom.porsche.com/en_PME/2025/company/porsche-achieves-sustainable-growth-across-the-region.html">2024 result</a> · <a href="https://marhaba.qa/porsche-middle-east-and-africa-deliveries-increase-7-in-2019/">2019 result (via Marhaba Qatar)</a> · <a href="https://newsroom.porsche.com/en_PAP/2026/company/porsche-delivers-122306-sports-cars-in-the-first-half-of-the-year.html">H1 2026 deliveries</a> · <a href="https://www.carscoops.com/2026/01/global-porsche-sales-tanked-in-2025-but-two-models-refused-to-comply/">2025 global deliveries (Carscoops)</a></p>
+</section>
+
+<section id="framework">
+  <h2>2 · The framework <span class="tag syn">PROPOSAL</span></h2>
+  <p class="sub">Porsche's <a href="https://dealer.porsche.com/kw/kuwait/en-GB/news-and-events/2026-Event-detail-page5">announcement of the 2025 Importer of the Year for the Middle East region</a> states what the award looks at: customer satisfaction, service quality, sales innovation, team efficiency and the ability to build long-term loyalty. I used those five as the pillars. The KPIs under them are my proposal, not Porsche's list.</p>
+  <div class="card" style="overflow:auto"><table id="kpi-table"></table></div>
+  <h3>Risk gates (decide eligibility, never add points)</h3>
+  <div class="card"><table>
+    <tr><th>Gate</th><th>Green</th><th>Amber (eligible, escalate)</th><th>Red (not eligible)</th></tr>
+    <tr><td>Financial and business stability</td><td>Current ratio ≥ 1.2 and net debt/EBITDA ≤ 3.0</td><td>Current ratio 1.0 to 1.2, or net debt/EBITDA 3.0 to 4.0</td><td>Current ratio &lt; 1.0, or net debt/EBITDA &gt; 4.0</td></tr>
+    <tr><td>Integrity and compliance</td><td>No open high-severity audit findings</td><td>1 to 2 open</td><td>3 or more open</td></tr>
+    <tr><td>Data quality</td><td>Reporting completeness ≥ 95%</td><td>90% to 95%</td><td>&lt; 90%</td></tr>
+  </table>
+  <p class="small">The posting asks for partners to be evaluated on financial, integrity, data and business-stability risk with material issues escalated. Gates keep that separate from performance so a strong sales year cannot offset a compliance problem, and the reason for an exclusion is always stated.</p></div>
+</section>
+
+<section id="method">
+  <h2>3 · The scoring method</h2>
+  <p class="sub">Every step is simple enough to explain to an importer's general manager in one minute, which is the test for a methodology that gets published.</p>
+  <div class="grid2">
+    <div class="card"><ol class="tight">
+      <li><b>Clean first.</b> Data-quality rules run before scoring (section 6). Bad values are excluded and replaced with the importer's own mean of its other quarters, and each one is logged.</li>
+      <li><b>Attainment per KPI</b> = actual ÷ target where higher is better, target ÷ actual where lower is better, capped at 110% so one outlier KPI cannot carry a pillar.</li>
+      <li><b>Pillar score</b> = weighted mean of its KPI attainments × 100. 100 means every target was met.</li>
+      <li><b>Total</b> = pillar scores × pillar weights (30 / 20 / 20 / 15 / 15).</li>
+      <li><b>Eligibility:</b> any red gate removes the importer from the award ranking. The score is still shown.</li>
+    </ol></div>
+    <div class="card"><h3 style="margin-top:0">Choices I would put in front of the importers</h3>
+      <ul class="tight">
+        <li><b>Targets, not peer rank, inside the score.</b> An importer is measured against a fixed target, so one importer improving does not push another down.</li>
+        <li><b>A cap at 110%</b> rewards beating a target without letting one KPI dominate.</li>
+        <li><b>Weights are policy, not maths.</b> That is why section 5 tests how much they matter.</li>
+        <li><b>Four quarters averaged</b> to reduce the effect of one bad quarter. A rolling view is a better fit for in-year steering.</li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="results">
+  <h2>4 · The scorecard, live <span class="tag syn">SYNTHETIC DATA</span></h2>
+  <p class="sub">Move the weights and the ranking recalculates in your browser. Click a row to see why an importer sits where it does, which pillars explain its gap to the leader.</p>
+  <div class="card">
+    <div class="controls" id="weights"></div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <label class="small"><input type="checkbox" id="gates" checked> Apply risk gates</label>
+      <button id="reset">Reset to base weights</button>
+      <span class="small" id="wnote"></span>
+    </div>
+    <div class="legend" id="pleg"></div>
+    <div style="overflow:auto"><table id="rank"></table></div>
+  </div>
+  <div class="card" id="detail"></div>
+</section>
+
+<section id="sens">
+  <h2>5 · How much do the weights matter? <span class="tag syn">SYNTHETIC DATA</span></h2>
+  <p class="sub">I drew 5,000 random sets of pillar weights centred on the base weights (typically within about ±10 points on the 30% weight) and re-ranked the eligible importers each time. A ranking that only exists under one set of weights is not a finding.</p>
+  <div class="grid2">
+    <div class="card"><div id="chart-sens"></div><p class="small">Bar = 5th to 95th percentile of rank across 5,000 weight draws; dot = median rank.</p></div>
+    <div class="card"><h3 style="margin-top:0">Reading it</h3><ul class="tight" id="sens-read"></ul>
+    <h3>Drop one pillar at a time</h3><div id="pillar-out" class="small"></div></div>
+  </div>
+</section>
+
+<section id="dq">
+  <h2>6 · Data quality runs before scoring <span class="tag syn">SYNTHETIC DATA</span></h2>
+  <p class="sub">Four rules run on every submission. In this prototype I injected four deliberate errors into the synthetic data to confirm the rules find them. That shows the rules work on those four patterns, nothing more: real submissions will contain errors I have not thought of.</p>
+  <div class="grid2">
+    <div class="card"><table>
+      <tr><th>Rule</th><th>Test</th></tr>
+      <tr><td>R1 Completeness</td><td>No blank values for a KPI an importer must report</td></tr>
+      <tr><td>R2 Plausible range</td><td>Percentages in 0 to 100, scores in -100 to 100</td></tr>
+      <tr><td>R3 Impossible zero</td><td>A rate such as pre-owned sales or conversion that reads exactly 0</td></tr>
+      <tr><td>R4 Outlier vs own history</td><td>More than 4 pooled standard deviations from the importer's own median</td></tr>
+    </table></div>
+    <div class="card"><div id="dq-log"></div></div>
+  </div>
+</section>
+
+<section id="model">
+  <h2>7 · Power BI model and migration plan</h2>
+  <p class="sub">The page above is an HTML rendering of a Power BI-ready star schema. The CSVs and measures are in the downloads. The DAX below has not been executed in Power BI Desktop in this prototype, so treat it as a design on paper and validate it against the Python scores before relying on it.</p>
+  <div class="card"><div id="chart-model"></div></div>
+  <div class="grid2">
+    <div class="card"><h3 style="margin-top:0">Core measures (DAX)</h3>
+<pre>KPI Attainment :=
+VAR Actual = AVERAGE ( fact_kpi_quarterly[value_used] )
+VAR Target = SELECTEDVALUE ( dim_kpi[target] )
+VAR HigherBetter =
+    SELECTEDVALUE ( dim_kpi[direction] ) = "higher is better"
+RETURN
+    MIN ( 1.1,
+        IF ( HigherBetter,
+            DIVIDE ( Actual, Target ),
+            DIVIDE ( Target, Actual ) ) )
+
+Pillar Score :=
+SUMX (
+    VALUES ( dim_kpi[kpi_id] ),
+    [KPI Attainment]
+        * CALCULATE ( MAX ( dim_kpi[weight_in_pillar] ) )
+) * 100
+
+Total Score :=
+SUMX (
+    VALUES ( dim_pillar[pillar_id] ),
+    [Pillar Score]
+        * CALCULATE ( MAX ( dim_pillar[base_weight] ) )
+)
+
+Eligible :=
+IF ( SELECTEDVALUE ( fact_risk_gates[gate_status] ) &lt;&gt; "RED", 1, 0 )</pre></div>
+    <div class="card"><h3 style="margin-top:0">Migration plan I would run</h3>
+      <ol class="tight">
+        <li><b>Inventory and freeze definitions.</b> List every report and KPI in use today, who owns it, which source feeds it. One written definition per KPI, signed off before anything is rebuilt.</li>
+        <li><b>Build the model once.</b> Star schema, one measure layer, no logic in report pages.</li>
+        <li><b>Run old and new in parallel for one reporting cycle</b> and reconcile every difference to a cause, so users trust the new numbers.</li>
+        <li><b>Row-level security</b> so each importer sees only its own data and the peer ranking.</li>
+        <li><b>Monitoring:</b> data-quality log published with every refresh, refresh failures alerted, a named owner per table.</li>
+        <li><b>Retire the old reports</b> on a stated date, not gradually.</li>
+      </ol></div>
+  </div>
+</section>
+
+<section id="map">
+  <h2>8 · How this maps to the role</h2>
+  <div class="card"><table>
+    <tr><th>The posting asks for</th><th>What this project shows</th></tr>
+    <tr><td>Define KPI logic and reporting requirements</td><td>KPI dictionary with definition, unit, direction, target and weight for each KPI (section 2)</td></tr>
+    <tr><td>Lead the migration to the target Power BI set-up</td><td>Star schema, measure layer and a six-step migration plan with parallel run (section 7)</td></tr>
+    <tr><td>Own Importer of the Year: KPI framework, scoring methodology, transparent communication</td><td>Five pillars taken from the published criteria, a one-minute scoring method, a weight-sensitivity test (sections 2 to 5)</td></tr>
+    <tr><td>Evaluate partners on financial, integrity, data and stability risk</td><td>Three gates with thresholds, kept separate from the performance score (section 2)</td></tr>
+    <tr><td>Challenge assumptions; identify root causes</td><td>Gap-to-leader decomposition by pillar; a stated test of whether the winner survives different weights (sections 4 and 5)</td></tr>
+    <tr><td>Monitor market, importer and retail-network performance</td><td>Regional delivery trend and context from public releases (section 1)</td></tr>
+  </table>
+  <p class="small">Not covered here: the annual Importer Business Plan cycle, PME operational guidelines, and any real importer data. Those need access I do not have, and I would rather say so than imply otherwise.</p></div>
+</section>
+
+<section id="limits">
+  <h2>9 · Limits, stated plainly</h2>
+  <div class="callout syn"><ul class="tight">
+    <li><b>Importer data is synthetic.</b> Generated with a fixed random seed (20261115). Real importer KPIs are internal to the manufacturer, and I chose not to scrape or guess at partners' public data. Which importer ranks first here tells you nothing about any real importer.</li>
+    <li><b>The KPI list, targets, weights and gate thresholds are my proposals.</b> They mirror the five published criteria but are not Porsche's definitions.</li>
+    <li><b>The weight-sensitivity result depends on the synthetic spread.</b> The method transfers; the finding does not.</li>
+    <li><b>Derived delivery years are approximate</b> and marked as such.</li>
+    <li><b>DAX not yet validated in Power BI Desktop.</b></li>
+  </ul></div>
+  <h3>Downloads</h3>
+  <div class="card"><div class="small">Model tables (CSV): <a href="data/dim_importer.csv">dim_importer</a> · <a href="data/dim_kpi.csv">dim_kpi</a> · <a href="data/dim_pillar.csv">dim_pillar</a> · <a href="data/dim_quarter.csv">dim_quarter</a> · <a href="data/fact_kpi_quarterly.csv">fact_kpi_quarterly</a> · <a href="data/fact_risk_gates.csv">fact_risk_gates</a> · <a href="data/fact_scorecard.csv">fact_scorecard</a> · <a href="data/fact_weight_sensitivity.csv">fact_weight_sensitivity</a> · <a href="data/dq_log.csv">dq_log</a><br>
+  Code and measures: <a href="build_model.py">build_model.py</a> · <a href="measures.dax">measures.dax</a> · <a href="README.md">README</a></div></div>
+</section>
+</main>
+
+<footer><div class="wrap">Built by Amaan Khan, MBA Business Analytics candidate, BITS Pilani Dubai Campus. This page uses no Porsche logos or wordmarks and is not an official Porsche publication.</div></footer>
+
+<script>
+const D = {"seed": 20261115, "draws": 5000, "cap": 1.1, "pillars": {"A": {"name": "Customer satisfaction", "weight": 0.3}, "B": {"name": "Service quality", "weight": 0.2}, "C": {"name": "Sales innovation", "weight": 0.2}, "D": {"name": "Team efficiency", "weight": 0.15}, "E": {"name": "Long-term loyalty", "weight": 0.15}}, "kpis": [{"kpi_id": "A1", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Sales satisfaction index", "unit": "pts", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Mean post-purchase survey score, 0-100, delivered vehicles in quarter"}, {"kpi_id": "A2", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Service satisfaction index", "unit": "pts", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Mean post-service survey score, 0-100, completed workshop orders in quarter"}, {"kpi_id": "A3", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Complaints resolved within 48h", "unit": "%", "direction": "higher is better", "target": 95, "weight_in_pillar": 0.2, "definition": "Complaints closed within 48h / complaints opened in quarter"}, {"kpi_id": "B1", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "First-time-fix rate", "unit": "%", "direction": "higher is better", "target": 92, "weight_in_pillar": 0.4, "definition": "Repair orders closed without a repeat visit within 30 days / orders closed"}, {"kpi_id": "B2", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "Service retention (cars 4+ yrs)", "unit": "%", "direction": "higher is better", "target": 55, "weight_in_pillar": 0.4, "definition": "Cars aged 4+ years serviced at an authorised workshop / cars in operation of that age"}, {"kpi_id": "B3", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "Warranty claim rejection rate", "unit": "%", "direction": "lower is better", "target": 3, "weight_in_pillar": 0.2, "definition": "Warranty claims rejected by the manufacturer / claims submitted"}, {"kpi_id": "C1", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Individualisation share of orders", "unit": "%", "direction": "higher is better", "target": 35, "weight_in_pillar": 0.3, "definition": "Orders with Exclusive Manufaktur / factory-individualised content / total orders"}, {"kpi_id": "C2", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Pre-owned sales per 100 new", "unit": "units", "direction": "higher is better", "target": 25, "weight_in_pillar": 0.3, "definition": "Approved pre-owned retail sales per 100 new-vehicle deliveries"}, {"kpi_id": "C3", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Lead-to-order conversion", "unit": "%", "direction": "higher is better", "target": 12, "weight_in_pillar": 0.4, "definition": "Orders / qualified leads in the period"}, {"kpi_id": "D1", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Leads answered within 1 hour", "unit": "%", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Qualified leads with a first human response within 1h / qualified leads"}, {"kpi_id": "D2", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Certified staff share", "unit": "%", "direction": "higher is better", "target": 95, "weight_in_pillar": 0.3, "definition": "Customer-facing staff holding current certification / customer-facing staff"}, {"kpi_id": "D3", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Delivery-date adherence", "unit": "%", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.3, "definition": "Vehicles handed over on or before the promised date / vehicles delivered"}, {"kpi_id": "E1", "pillar_id": "E", "pillar": "Long-term loyalty", "kpi_name": "Repeat-customer share of new sales", "unit": "%", "direction": "higher is better", "target": 45, "weight_in_pillar": 0.5, "definition": "New-vehicle buyers who already own or owned a Porsche / buyers"}, {"kpi_id": "E2", "pillar_id": "E", "pillar": "Long-term loyalty", "kpi_name": "Net Promoter Score", "unit": "pts", "direction": "higher is better", "target": 60, "weight_in_pillar": 0.5, "definition": "% promoters minus % detractors, rolling four quarters"}], "importers": [{"id": "IMP15", "label": "Importer 15", "tier": "Large", "centres": 5, "total": 103.55, "pillars": {"A": 102.9, "B": 99.4, "C": 110.0, "D": 101.3, "E": 104.0}, "gate": "AMBER", "reasons": "data: reporting completeness < 95%", "eligible": true, "rank_score_only": 1, "rank_eligible": 1, "gap_to_leader": {"A": 0.0, "B": 0.0, "C": 0.0, "D": 0.0, "E": 0.0}}, {"id": "IMP06", "label": "Importer 06", "tier": "Mid", "centres": 3, "total": 99.0, "pillars": {"A": 98.8, "B": 103.4, "C": 92.6, "D": 95.9, "E": 105.2}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 2, "rank_eligible": 2, "gap_to_leader": {"A": -1.24, "B": 0.79, "C": -3.47, "D": -0.8, "E": 0.18}}, {"id": "IMP11", "label": "Importer 11", "tier": "Mid", "centres": 2, "total": 97.52, "pillars": {"A": 97.6, "B": 105.2, "C": 96.8, "D": 89.5, "E": 96.2}, "gate": "RED", "reasons": "integrity: >=3 open high-severity findings; financial: liquidity/leverage watch", "eligible": false, "rank_score_only": 3, "rank_eligible": null, "gap_to_leader": {"A": -1.59, "B": 1.16, "C": -2.64, "D": -1.77, "E": -1.18}}, {"id": "IMP02", "label": "Importer 02", "tier": "Mid", "centres": 3, "total": 97.28, "pillars": {"A": 96.6, "B": 90.0, "C": 97.2, "D": 95.8, "E": 110.0}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 4, "rank_eligible": 3, "gap_to_leader": {"A": -1.88, "B": -1.88, "C": -2.57, "D": -0.83, "E": 0.89}}, {"id": "IMP14", "label": "Importer 14", "tier": "Mid", "centres": 2, "total": 94.66, "pillars": {"A": 93.7, "B": 82.8, "C": 106.9, "D": 94.5, "E": 96.3}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 5, "rank_eligible": 4, "gap_to_leader": {"A": -2.76, "B": -3.33, "C": -0.61, "D": -1.02, "E": -1.17}}, {"id": "IMP10", "label": "Importer 10", "tier": "Mid", "centres": 2, "total": 91.69, "pillars": {"A": 97.3, "B": 103.1, "C": 76.0, "D": 95.4, "E": 82.5}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 6, "rank_eligible": 5, "gap_to_leader": {"A": -1.67, "B": 0.74, "C": -6.81, "D": -0.89, "E": -3.23}}, {"id": "IMP12", "label": "Importer 12", "tier": "Small", "centres": 1, "total": 91.49, "pillars": {"A": 94.3, "B": 87.2, "C": 90.9, "D": 99.9, "E": 84.0}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 7, "rank_eligible": 6, "gap_to_leader": {"A": -2.58, "B": -2.45, "C": -3.82, "D": -0.21, "E": -3.0}}, {"id": "IMP04", "label": "Importer 04", "tier": "Mid", "centres": 3, "total": 91.44, "pillars": {"A": 91.6, "B": 86.9, "C": 89.2, "D": 90.6, "E": 100.9}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 8, "rank_eligible": 7, "gap_to_leader": {"A": -3.38, "B": -2.5, "C": -4.15, "D": -1.6, "E": -0.47}}, {"id": "IMP09", "label": "Importer 09", "tier": "Small", "centres": 1, "total": 89.81, "pillars": {"A": 92.4, "B": 96.2, "C": 88.6, "D": 92.5, "E": 75.1}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 9, "rank_eligible": 8, "gap_to_leader": {"A": -3.15, "B": -0.65, "C": -4.29, "D": -1.32, "E": -4.34}}, {"id": "IMP16", "label": "Importer 16", "tier": "Mid", "centres": 2, "total": 87.03, "pillars": {"A": 86.7, "B": 87.8, "C": 85.2, "D": 90.1, "E": 85.9}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 10, "rank_eligible": 9, "gap_to_leader": {"A": -4.84, "B": -2.32, "C": -4.95, "D": -1.68, "E": -2.72}}, {"id": "IMP05", "label": "Importer 05", "tier": "Mid", "centres": 3, "total": 86.54, "pillars": {"A": 98.3, "B": 79.7, "C": 70.6, "D": 93.1, "E": 86.8}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 11, "rank_eligible": 10, "gap_to_leader": {"A": -1.36, "B": -3.95, "C": -7.89, "D": -1.22, "E": -2.59}}, {"id": "IMP08", "label": "Importer 08", "tier": "Mid", "centres": 3, "total": 84.94, "pillars": {"A": 87.6, "B": 78.1, "C": 86.4, "D": 96.1, "E": 75.7}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 12, "rank_eligible": 11, "gap_to_leader": {"A": -4.58, "B": -4.27, "C": -4.72, "D": -0.79, "E": -4.25}}, {"id": "IMP13", "label": "Importer 13", "tier": "Small", "centres": 2, "total": 79.57, "pillars": {"A": 92.2, "B": 86.6, "C": 54.6, "D": 83.7, "E": 74.1}, "gate": "RED", "reasons": "financial: liquidity/leverage breach; data: reporting completeness < 95%", "eligible": false, "rank_score_only": 13, "rank_eligible": null, "gap_to_leader": {"A": -3.2, "B": -2.56, "C": -11.09, "D": -2.63, "E": -4.5}}, {"id": "IMP01", "label": "Importer 01", "tier": "Mid", "centres": 2, "total": 78.04, "pillars": {"A": 92.4, "B": 82.4, "C": 41.5, "D": 91.6, "E": 78.8}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 14, "rank_eligible": 12, "gap_to_leader": {"A": -3.15, "B": -3.41, "C": -13.71, "D": -1.46, "E": -3.79}}, {"id": "IMP03", "label": "Importer 03", "tier": "Mid", "centres": 3, "total": 77.15, "pillars": {"A": 91.5, "B": 85.0, "C": 49.9, "D": 86.9, "E": 64.6}, "gate": "AMBER", "reasons": "data: reporting completeness < 95%", "eligible": true, "rank_score_only": 15, "rank_eligible": 13, "gap_to_leader": {"A": -3.42, "B": -2.88, "C": -12.02, "D": -2.15, "E": -5.92}}, {"id": "IMP07", "label": "Importer 07", "tier": "Mid", "centres": 2, "total": 71.19, "pillars": {"A": 81.8, "B": 61.3, "C": 63.8, "D": 88.0, "E": 56.3}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 16, "rank_eligible": 14, "gap_to_leader": {"A": -6.32, "B": -7.63, "C": -9.24, "D": -2.0, "E": -7.17}}], "leader": "Importer 15", "sensitivity": [{"id": "IMP01", "label": "Importer 01", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 12.0, "rank_p05": 12.0, "rank_p95": 13.0}, {"id": "IMP02", "label": "Importer 02", "eligible": true, "p_rank1": 0.0, "p_top3": 0.9368, "median_rank": 3.0, "rank_p05": 2.0, "rank_p95": 4.0}, {"id": "IMP03", "label": "Importer 03", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 13.0, "rank_p05": 12.0, "rank_p95": 13.0}, {"id": "IMP04", "label": "Importer 04", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 6.0, "rank_p05": 5.0, "rank_p95": 8.0}, {"id": "IMP05", "label": "Importer 05", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 10.0, "rank_p05": 8.0, "rank_p95": 11.0}, {"id": "IMP06", "label": "Importer 06", "eligible": true, "p_rank1": 0.0002, "p_top3": 0.967, "median_rank": 2.0, "rank_p05": 2.0, "rank_p95": 3.0}, {"id": "IMP07", "label": "Importer 07", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 14.0, "rank_p05": 14.0, "rank_p95": 14.0}, {"id": "IMP08", "label": "Importer 08", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 11.0, "rank_p05": 10.0, "rank_p95": 11.0}, {"id": "IMP09", "label": "Importer 09", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 8.0, "rank_p05": 6.0, "rank_p95": 9.0}, {"id": "IMP10", "label": "Importer 10", "eligible": true, "p_rank1": 0.0, "p_top3": 0.03, "median_rank": 6.0, "rank_p05": 4.0, "rank_p95": 8.0}, {"id": "IMP11", "label": "Importer 11", "eligible": false, "p_rank1": null, "p_top3": null, "median_rank": null, "rank_p05": null, "rank_p95": null}, {"id": "IMP12", "label": "Importer 12", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 6.0, "rank_p05": 5.0, "rank_p95": 7.0}, {"id": "IMP13", "label": "Importer 13", "eligible": false, "p_rank1": null, "p_top3": null, "median_rank": null, "rank_p05": null, "rank_p95": null}, {"id": "IMP14", "label": "Importer 14", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0662, "median_rank": 4.0, "rank_p05": 3.0, "rank_p95": 6.0}, {"id": "IMP15", "label": "Importer 15", "eligible": true, "p_rank1": 0.9998, "p_top3": 1.0, "median_rank": 1.0, "rank_p05": 1.0, "rank_p95": 1.0}, {"id": "IMP16", "label": "Importer 16", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 9.0, "rank_p05": 9.0, "rank_p95": 10.0}], "pillar_out": [{"dropped_pillar": "A", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "B", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "C", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "D", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "E", "leader": "Importer 15", "same_leader_as_base": true}], "dq": {"injected": ["IMP07 FY-Q3 B1 left blank", "IMP12 FY-Q2 A3 entered as 982 instead of a percentage", "IMP03 FY-Q4 C2 reported as 0", "IMP09 FY-Q1 D1 entered as 31 (typo)"], "caught": [{"importer_id": "IMP03", "quarter": "FY-Q4", "kpi_id": "C2", "rule": "R3 zero on a rate that cannot be zero", "action": "excluded; imputed with importer's mean of other quarters", "value": 0.0}, {"importer_id": "IMP07", "quarter": "FY-Q3", "kpi_id": "B1", "rule": "R1 completeness", "action": "excluded; imputed with importer's mean of other quarters", "value": NaN}, {"importer_id": "IMP12", "quarter": "FY-Q2", "kpi_id": "A3", "rule": "R2 plausible range", "action": "excluded; imputed with importer's mean of other quarters", "value": 982.0}, {"importer_id": "IMP09", "quarter": "FY-Q1", "kpi_id": "D1", "rule": "R4 outlier vs own history (>4 pooled SD)", "action": "excluded pending confirmation; imputed with importer's mean of other quarters", "value": 31.0}]}, "gates": [{"importer_id": "IMP01", "current_ratio": 1.76, "net_debt_to_ebitda": 2.05, "open_high_findings": 1, "reporting_completeness_pct": 95.9, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP02", "current_ratio": 1.74, "net_debt_to_ebitda": 3.25, "open_high_findings": 1, "reporting_completeness_pct": 97.3, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP03", "current_ratio": 1.64, "net_debt_to_ebitda": 1.8, "open_high_findings": 0, "reporting_completeness_pct": 94.7, "gate_status": "AMBER", "gate_reasons": "data: reporting completeness < 95%"}, {"importer_id": "IMP04", "current_ratio": 1.86, "net_debt_to_ebitda": 3.03, "open_high_findings": 1, "reporting_completeness_pct": 96.9, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP05", "current_ratio": 1.33, "net_debt_to_ebitda": 3.4, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP06", "current_ratio": 2.06, "net_debt_to_ebitda": 1.24, "open_high_findings": 0, "reporting_completeness_pct": 97.4, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP07", "current_ratio": 1.69, "net_debt_to_ebitda": 2.5, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP08", "current_ratio": 1.32, "net_debt_to_ebitda": 0.65, "open_high_findings": 0, "reporting_completeness_pct": 98.4, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP09", "current_ratio": 1.51, "net_debt_to_ebitda": 3.52, "open_high_findings": 2, "reporting_completeness_pct": 97.5, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP10", "current_ratio": 1.24, "net_debt_to_ebitda": 0.69, "open_high_findings": 0, "reporting_completeness_pct": 97.3, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP11", "current_ratio": 1.36, "net_debt_to_ebitda": 3.36, "open_high_findings": 4, "reporting_completeness_pct": 95.9, "gate_status": "RED", "gate_reasons": "integrity: >=3 open high-severity findings; financial: liquidity/leverage watch"}, {"importer_id": "IMP12", "current_ratio": 1.84, "net_debt_to_ebitda": 2.94, "open_high_findings": 0, "reporting_completeness_pct": 98.8, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP13", "current_ratio": 0.94, "net_debt_to_ebitda": 3.57, "open_high_findings": 0, "reporting_completeness_pct": 90.7, "gate_status": "RED", "gate_reasons": "financial: liquidity/leverage breach; data: reporting completeness < 95%"}, {"importer_id": "IMP14", "current_ratio": 1.47, "net_debt_to_ebitda": 1.88, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP15", "current_ratio": 1.83, "net_debt_to_ebitda": 0.59, "open_high_findings": 0, "reporting_completeness_pct": 92.3, "gate_status": "AMBER", "gate_reasons": "data: reporting completeness < 95%"}, {"importer_id": "IMP16", "current_ratio": 1.76, "net_debt_to_ebitda": 1.75, "open_high_findings": 0, "reporting_completeness_pct": 100.0, "gate_status": "GREEN", "gate_reasons": ""}]};
+const PC = {A:'var(--pa)',B:'var(--pb)',C:'var(--pc)',D:'var(--pd)',E:'var(--pe)'};
+const PCH = {A:'#b5121b',B:'#25527a',C:'#c58b1a',D:'#4f7a5a',E:'#6b5b95'};
+const $ = s => document.querySelector(s);
+const fmt = (x,d=1)=>Number(x).toFixed(d);
+
+// hero stat
+const lead = D.sensitivity.find(s=>s.label===D.leader);
+$('#s-lead').textContent = D.leader;
+$('#s-lead-p').textContent = Math.round(lead.p_rank1*5000).toLocaleString();
+
+// 1. deliveries chart
+(function(){
+  const pts=[{y:'2019',v:6891,r:true},{y:'2020',v:6212,r:false},{y:'2022',v:8237,r:false},{y:'2023',v:9143,r:false},{y:'2024',v:9509,r:true},{y:'2025',v:9628,r:true}];
+  const W=520,H=300,m={l:46,r:10,t:16,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,max=10000,bw=iw/pts.length*0.62;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Regional deliveries by year">`;
+  for(const t of [0,2500,5000,7500,10000]){const y=m.t+ih-(t/max)*ih;s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="#e3e6ea"/><text x="${m.l-6}" y="${y+4}" text-anchor="end" font-size="11" fill="#5b6573">${t.toLocaleString()}</text>`}
+  pts.forEach((p,i)=>{const x=m.l+i*(iw/pts.length)+(iw/pts.length-bw)/2,h=p.v/max*ih,y=m.t+ih-h;
+    s+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="3" fill="${p.r?'#14181f':'#b8bec7'}"/>`;
+    s+=`<text x="${x+bw/2}" y="${y-5}" text-anchor="middle" font-size="11.5" font-weight="600" fill="#14181f">${p.r?'':'~'}${p.v.toLocaleString()}</text>`;
+    s+=`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle" font-size="12" fill="#5b6573">${p.y}</text>`});
+  s+='</svg>';$('#chart-deliv').innerHTML=s;
+})();
+
+// 2. KPI table
+(function(){
+  let h='<tr><th>Pillar</th><th>KPI</th><th>Definition</th><th class="num">Target</th><th class="num">Weight in pillar</th></tr>';
+  let last='';
+  for(const k of D.kpis){
+    const first = k.pillar_id!==last; last=k.pillar_id;
+    const pw = D.pillars[k.pillar_id].weight;
+    h+=`<tr><td>${first?`<b style="color:${PCH[k.pillar_id]}">${k.pillar}</b><br><span class="small">pillar weight ${Math.round(pw*100)}%</span>`:''}</td><td>${k.kpi_id} · ${k.kpi_name}${k.direction==='lower is better'?' <span class="small">(lower is better)</span>':''}</td><td class="small">${k.definition}</td><td class="num">${k.target}${k.unit==='%'?'%':''}</td><td class="num">${Math.round(k.weight_in_pillar*100)}%</td></tr>`;
+  }
+  $('#kpi-table').innerHTML=h;
+})();
+
+// 4. interactive scorecard
+const base = {}; for(const p in D.pillars) base[p]=Math.round(D.pillars[p].weight*100);
+let W = {...base}, sel = null;
+function buildControls(){
+  let h=''; for(const p in D.pillars){h+=`<div><label><b style="color:${PCH[p]}">${D.pillars[p].name}</b> <span id="wv-${p}"></span><input type="range" min="0" max="60" step="1" value="${W[p]}" data-p="${p}"></label></div>`}
+  $('#weights').innerHTML=h;
+  document.querySelectorAll('#weights input').forEach(el=>el.addEventListener('input',e=>{W[e.target.dataset.p]=+e.target.value;render()}));
+  $('#pleg').innerHTML=Object.keys(D.pillars).map(p=>`<span><i style="background:${PCH[p]}"></i>${D.pillars[p].name}</span>`).join('');
+}
+function weightsNorm(){const t=Object.values(W).reduce((a,b)=>a+b,0)||1;const o={};for(const p in W)o[p]=W[p]/t;return o}
+function score(imp,wn){let t=0;for(const p in wn)t+=imp.pillars[p]*wn[p];return t}
+function render(){
+  const wn=weightsNorm(), useG=$('#gates').checked;
+  for(const p in wn)$('#wv-'+p).textContent=Math.round(wn[p]*100)+'%';
+  $('#wnote').textContent = Object.values(W).reduce((a,b)=>a+b,0)===0?'All weights are zero':'Weights are rescaled to sum to 100%.';
+  const rows=D.importers.map(i=>({...i,t:score(i,wn)})).sort((a,b)=>b.t-a.t);
+  let r=0; rows.forEach(x=>{x.elig=!useG||x.eligible; if(x.elig){r++;x.rk=r}else x.rk=null});
+  const mx=Math.max(...rows.map(x=>x.t),100)*1.02;
+  let h='<tr><th class="num">Rank</th><th>Importer</th><th>Weighted contribution by pillar</th><th class="num">Score</th><th>Gate</th></tr>';
+  for(const x of rows){
+    let bar=`<svg viewBox="0 0 420 16" width="100%" height="16" style="max-width:420px;display:block">`;let cx=0;
+    for(const p in wn){const w=x.pillars[p]*wn[p]/mx*420;bar+=`<rect x="${cx}" y="1" width="${Math.max(w-1,0)}" height="14" fill="${PCH[p]}" opacity="${x.elig?1:.35}"/>`;cx+=w}
+    bar+='</svg>';
+    h+=`<tr class="rowbtn ${sel===x.id?'sel':''}" data-id="${x.id}"><td class="num">${x.rk??'–'}</td><td>${x.label}${x.elig?'':' <span class="small">(not eligible)</span>'}</td><td>${bar}</td><td class="num">${fmt(x.t)}</td><td class="${x.gate}" title="${x.reasons||'no issues'}">${x.gate}</td></tr>`;
+  }
+  $('#rank').innerHTML=h;
+  document.querySelectorAll('#rank .rowbtn').forEach(el=>el.addEventListener('click',()=>{sel=el.dataset.id;render()}));
+  renderDetail(rows,wn);
+}
+function renderDetail(rows,wn){
+  const el=$('#detail');
+  if(!sel){el.innerHTML='<span class="small">Click an importer above to see its pillar profile and its gap to the leader.</span>';return}
+  const x=rows.find(r=>r.id===sel), L=rows.find(r=>r.elig);
+  let h=`<h3 style="margin-top:0">${x.label} <span class="small">· ${x.tier} market tier · ${x.centres} centres (synthetic)</span></h3>`;
+  h+=`<p class="small">Gate: <span class="${x.gate}">${x.gate}</span>${x.reasons?' · '+x.reasons:''}</p>`;
+  if(L && L.id!==x.id){
+    const gaps=Object.keys(wn).map(p=>({p,g:(x.pillars[p]-L.pillars[p])*wn[p]}));
+    const tot=gaps.reduce((a,b)=>a+b.g,0);
+    h+=`<p>Gap to leader (${L.label}): <b>${fmt(tot)}</b> points. Where it comes from:</p><table><tr><th>Pillar</th><th class="num">Importer</th><th class="num">Leader</th><th class="num">Weighted gap</th></tr>`;
+    for(const g of gaps.sort((a,b)=>a.g-b.g))h+=`<tr><td><b style="color:${PCH[g.p]}">${D.pillars[g.p].name}</b></td><td class="num">${fmt(x.pillars[g.p])}</td><td class="num">${fmt(L.pillars[g.p])}</td><td class="num">${g.g>0?'+':''}${fmt(g.g,2)}</td></tr>`;
+    h+='</table>';
+  }else if(L){h+=`<p>This importer leads the eligible ranking at the current weights.</p>`}
+  el.innerHTML=h;
+}
+
+// 5. sensitivity chart
+(function(){
+  const e=D.sensitivity.filter(s=>s.eligible).sort((a,b)=>a.median_rank-b.median_rank||a.rank_p05-b.rank_p05);
+  const W=520,rh=22,m={l:92,r:14,t:20,b:28},H=m.t+m.b+rh*e.length,n=D.importers.filter(i=>i.eligible).length,iw=W-m.l-m.r;
+  const X=r=>m.l+(r-1)/(n-1)*iw;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Rank range under random weights">`;
+  for(let r=1;r<=n;r++){s+=`<line x1="${X(r)}" x2="${X(r)}" y1="${m.t-4}" y2="${H-m.b}" stroke="#eef0f2"/><text x="${X(r)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="#5b6573">${r}</text>`}
+  e.forEach((d,i)=>{const y=m.t+i*rh+rh/2;
+    s+=`<text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="11.5" fill="#14181f">${d.label}</text>`;
+    s+=`<line x1="${X(d.rank_p05)}" x2="${X(d.rank_p95)}" y1="${y}" y2="${y}" stroke="#b5121b" stroke-width="6" stroke-linecap="round" opacity=".28"/>`;
+    s+=`<circle cx="${X(d.median_rank)}" cy="${y}" r="4.5" fill="#b5121b"/>`});
+  s+=`<text x="${m.l+iw/2}" y="${m.t-8}" text-anchor="middle" font-size="11" fill="#5b6573">rank among eligible importers (1 = best)</text></svg>`;
+  $('#chart-sens').innerHTML=s;
+  const stable=e.filter(d=>d.rank_p95-d.rank_p05===0).length, moves=e.filter(d=>d.rank_p95-d.rank_p05>=2);
+  const top3=e.filter(d=>d.p_top3>0.5).map(d=>d.label);
+  let li=`<li><b>${D.leader}</b> is first in ${Math.round(lead.p_rank1*5000).toLocaleString()} of 5,000 weight sets.</li>`;
+  li+=`<li>The top three (${top3.join(', ')}) stay in the top three in at least ${Math.round(Math.min(...e.filter(d=>d.p_top3>0.5).map(d=>d.p_top3))*100)}% of draws, though positions two and three can swap.</li>`;
+  li+=`<li>${stable} of ${e.length} importers keep the same rank in at least 90% of draws. ${moves.length} move by two or more places across the 5th to 95th range: ${moves.map(d=>d.label+' ('+d.rank_p05+' to '+d.rank_p95+')').join(', ')}.</li>`;
+  li+=`<li>Practical reading: the top of the table is robust here, but exact mid-table positions should not be presented as precise without saying they depend on the weights.</li>`;
+  $('#sens-read').innerHTML=li;
+  $('#pillar-out').innerHTML=D.pillar_out.map(p=>`Without <b style="color:${PCH[p.dropped_pillar]}">${D.pillars[p.dropped_pillar].name}</b>: ${p.leader}${p.same_leader_as_base?' (unchanged)':' <b>(changed)</b>'}`).join('<br>');
+})();
+
+// 6. data quality log
+(function(){
+  let h='<table><tr><th>Importer</th><th>Qtr</th><th>KPI</th><th>Rule</th><th class="num">Value</th></tr>';
+  for(const d of D.dq.caught)h+=`<tr><td>${d.importer_id.replace('IMP','Importer ')}</td><td>${d.quarter.replace('FY-','')}</td><td>${d.kpi_id}</td><td>${({R1:'Completeness',R2:'Plausible range',R3:'Impossible zero',R4:'Outlier vs history'})[d.rule.slice(0,2)]}</td><td class="num">${(d.value===null||Number.isNaN(d.value))?'blank':d.value}</td></tr>`;
+  h+='</table><p class="small">Excluded values are replaced by the importer\'s own mean of its other quarters and logged. A real process would send each one back to the importer for correction before the cycle closes.</p>';
+  $('#dq-log').innerHTML=h;
+})();
+
+// 7. model diagram
+(function(){
+  const box=(x,y,w,t,cols,fill)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${22+cols.length*17}" rx="8" fill="${fill}" stroke="#c9ced6"/><text x="${x+10}" y="${y+16}" font-size="12.5" font-weight="700" fill="#14181f">${t}</text>`;cols.forEach((c,i)=>s+=`<text x="${x+10}" y="${y+34+i*17}" font-size="11" fill="#46505e">${c}</text>`);return s};
+  let s='<svg viewBox="0 0 900 372" width="100%" role="img" aria-label="Star schema">';
+  const L=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#9aa3af" stroke-width="1.5"/>`;
+  s+=L(235,70,350,150)+L(235,200,350,170)+L(665,70,550,150)+L(450,227,450,255)+L(127,110,127,150);
+  s+=box(20,20,215,'dim_importer',['importer_id','importer_label','market_tier','porsche_centres'],'#fff');
+  s+=box(20,150,215,'fact_risk_gates',['importer_id','current_ratio','net_debt_to_ebitda','open_high_findings','gate_status'],'#fdf6e8');
+  s+=box(350,120,200,'fact_kpi_quarterly',['importer_id','quarter','kpi_id','value','value_used'],'#fdecec');
+  s+=box(665,20,215,'dim_kpi',['kpi_id','pillar_id','target, direction','weight_in_pillar'],'#fff');
+  s+=box(665,160,215,'dim_pillar',['pillar_id','pillar','base_weight'],'#fff');
+  s+=box(350,255,200,'fact_scorecard',['importer_id','pillar scores A to E','total_score, eligible'],'#eef5f0');
+  s+=box(350,12,200,'dim_quarter',['quarter','quarter_index'],'#fff');
+  s+=L(450,68,450,120);s+=L(772,110,772,160);
+  s+='<text x="450" y="362" text-anchor="middle" font-size="11" fill="#5b6573">Facts in colour, dimensions in white. fact_scorecard is a computed output, recalculated in Power BI by the measures.</text></svg>';
+  $('#chart-model').innerHTML=s;
+})();
+
+buildControls();$('#gates').addEventListener('change',render);
+$('#reset').addEventListener('click',()=>{W={...base};buildControls();render()});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+kpi_id,pillar_id,pillar,kpi_name,unit,direction,target,weight_in_pillar,definition
+A1,A,Customer satisfaction,Sales satisfaction index,pts,higher is better,90,0.4,"Mean post-purchase survey score, 0-100, delivered vehicles in quarter"
+A2,A,Customer satisfaction,Service satisfaction index,pts,higher is better,90,0.4,"Mean post-service survey score, 0-100, completed workshop orders in quarter"
+A3,A,Customer satisfaction,Complaints resolved within 48h,%,higher is better,95,0.2,Complaints closed within 48h / complaints opened in quarter
+B1,B,Service quality,First-time-fix rate,%,higher is better,92,0.4,Repair orders closed without a repeat visit within 30 days / orders closed
+B2,B,Service quality,Service retention (cars 4+ yrs),%,higher is better,55,0.4,Cars aged 4+ years serviced at an authorised workshop / cars in operation of that age
+B3,B,Service quality,Warranty claim rejection rate,%,lower is better,3,0.2,Warranty claims rejected by the manufacturer / claims submitted
+C1,C,Sales innovation,Individualisation share of orders,%,higher is better,35,0.3,Orders with Exclusive Manufaktur / factory-individualised content / total orders
+C2,C,Sales innovation,Pre-owned sales per 100 new,units,higher is better,25,0.3,Approved pre-owned retail sales per 100 new-vehicle deliveries
+C3,C,Sales innovation,Lead-to-order conversion,%,higher is better,12,0.4,Orders / qualified leads in the period
+D1,D,Team efficiency,Leads answered within 1 hour,%,higher is better,90,0.4,Qualified leads with a first human response within 1h / qualified leads
+D2,D,Team efficiency,Certified staff share,%,higher is better,95,0.3,Customer-facing staff holding current certification / customer-facing staff
+D3,D,Team efficiency,Delivery-date adherence,%,higher is better,90,0.3,Vehicles handed over on or before the promised date / vehicles delivered
+E1,E,Long-term loyalty,Repeat-customer share of new sales,%,higher is better,45,0.5,New-vehicle buyers who already own or owned a Porsche / buyers
+E2,E,Long-term loyalty,Net Promoter Score,pts,higher is better,60,0.5,"% promoters minus % detractors, rolling four quarters"

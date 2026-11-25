@@ -184,11 +184,11 @@ footer{padding:44px 0 70px;color:var(--muted);font-size:14px}
 
 <section id="model">
   <h2>7 · Power BI model and migration plan</h2>
-  <p class="sub">The page above is an HTML rendering of a Power BI-ready star schema. The CSVs and measures are in the downloads. The DAX below has not been executed in Power BI Desktop in this prototype, so treat it as a design on paper and validate it against the Python scores before relying on it.</p>
+  <p class="sub">The page above is an HTML rendering of a Power BI-ready star schema. The CSVs and measures are in the downloads. The DAX below was built and run in Power BI Desktop, and the Total Score and eligible Rank for all 16 importers match the Python scores in <code>fact_scorecard.csv</code>.</p>
   <div class="card"><div id="chart-model"></div></div>
   <div class="grid2">
     <div class="card"><h3 style="margin-top:0">Core measures (DAX)</h3>
-<pre>KPI Attainment :=
+<pre>KPI Attainment =
 VAR Actual = AVERAGE ( fact_kpi_quarterly[value_used] )
 VAR Target = SELECTEDVALUE ( dim_kpi[target] )
 VAR HigherBetter =
@@ -199,21 +199,21 @@ RETURN
             DIVIDE ( Actual, Target ),
             DIVIDE ( Target, Actual ) ) )
 
-Pillar Score :=
+Pillar Score =
 SUMX (
     VALUES ( dim_kpi[kpi_id] ),
     [KPI Attainment]
         * CALCULATE ( MAX ( dim_kpi[weight_in_pillar] ) )
 ) * 100
 
-Total Score :=
+Total Score =
 SUMX (
     VALUES ( dim_pillar[pillar_id] ),
     [Pillar Score]
         * CALCULATE ( MAX ( dim_pillar[base_weight] ) )
 )
 
-Eligible :=
+Eligible =
 IF ( SELECTEDVALUE ( fact_risk_gates[gate_status] ) &lt;&gt; "RED", 1, 0 )</pre></div>
     <div class="card"><h3 style="margin-top:0">Migration plan I would run</h3>
       <ol class="tight">
@@ -248,7 +248,7 @@ IF ( SELECTEDVALUE ( fact_risk_gates[gate_status] ) &lt;&gt; "RED", 1, 0 )</pre>
     <li><b>The KPI list, targets, weights and gate thresholds are my proposals.</b> They mirror the five published criteria but are not Porsche's definitions.</li>
     <li><b>The weight-sensitivity result depends on the synthetic spread.</b> The method transfers; the finding does not.</li>
     <li><b>Derived delivery years are approximate</b> and marked as such.</li>
-    <li><b>DAX not yet validated in Power BI Desktop.</b></li>
+    <li><b>The Power BI report is a prototype page</b> (scorecard table, ranked bars by risk gate, pillar heatmap). Pillar weights are fixed in <code>dim_pillar</code>; a live what-if weight slider is not built.</li>
   </ul></div>
   <h3>Downloads</h3>
   <div class="card"><div class="small">Model tables (CSV): <a href="data/dim_importer.csv">dim_importer</a> · <a href="data/dim_kpi.csv">dim_kpi</a> · <a href="data/dim_pillar.csv">dim_pillar</a> · <a href="data/dim_quarter.csv">dim_quarter</a> · <a href="data/fact_kpi_quarterly.csv">fact_kpi_quarterly</a> · <a href="data/fact_risk_gates.csv">fact_risk_gates</a> · <a href="data/fact_scorecard.csv">fact_scorecard</a> · <a href="data/fact_weight_sensitivity.csv">fact_weight_sensitivity</a> · <a href="data/dq_log.csv">dq_log</a><br>

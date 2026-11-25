@@ -6,7 +6,8 @@ Independent portfolio project by Amaan Khan. Not affiliated with Porsche.
 Regional delivery figures on the page come from Porsche's public press releases and are cited on the page.
 
 ## What is in here
-- `index.html` - the project page (self-contained; open it in a browser or host it on GitHub Pages).
+- `index.html` - the project page, laid out like a 911 instrument cluster: one dial per pillar (dial size = pillar weight), the 110% attainment cap shown as the limiter, and the three risk gates as warning lamps. Hosted on GitHub Pages.
+- `fonts/` - Archivo variable font (SIL Open Font License, see `fonts/OFL.txt`).
 - `build_model.py` - generates the synthetic data, runs data-quality rules, scores importers, runs the weight-sensitivity test, writes `data/`.
 - `data/*.csv` - star schema for Power BI: `dim_importer`, `dim_kpi`, `dim_pillar`, `dim_quarter`, `fact_kpi_quarterly`, `fact_risk_gates`, plus outputs `fact_scorecard`, `fact_weight_sensitivity`, `dq_log`.
 - `img/powerbi-report.png` - screenshot of the Power BI report page built from the CSVs.
@@ -25,3 +26,6 @@ Any red risk gate removes an importer from the award ranking. Weight sensitivity
 
 ## Run it
 `python3 build_model.py` (needs pandas and numpy).
+
+## Credits
+Hero photograph: [Jaddy Liu on Unsplash](https://unsplash.com/photos/a-white-car-on-a-road-at-night-S8lqZpUaQ2A), Unsplash License; the number plate is blurred on the page. 911 generation dates and firsts: Porsche newsroom, *60 years of the Porsche 911* press kit. Porsche, 911 and Carrera are trademarks of Dr. Ing. h.c. F. Porsche AG, named only to describe the subject; no Porsche logos are used.

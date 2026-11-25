@@ -3,660 +3,922 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Every importer, on five dials: an importer scorecard prototype by Amaan Khan</title>
-<meta name="description" content="Independent portfolio project: an Importer of the Year scorecard laid out like a 911 instrument cluster. KPI framework, transparent scoring, weight-sensitivity test, data-quality rules and a Power BI model. Importer data is synthetic.">
-<meta name="theme-color" content="#181b1d">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2215%22 fill=%22%23181b1d%22 stroke=%22%23ece6d6%22 stroke-width=%222%22/%3E%3Cpath d=%22M16 16L24 9%22 stroke=%22%23ece6d6%22 stroke-width=%222.5%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M26 22.5l2 1.5%22 stroke=%22%23ec5b50%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
-<meta property="og:title" content="Every importer, on five dials">
-<meta property="og:description" content="An importer scorecard prototype by Amaan Khan, laid out like a 911 instrument cluster. Importer data is synthetic.">
+<title>Every importer, on five dials | Amaan Khan</title>
+<meta name="description" content="An Importer of the Year scorecard prototype by Amaan Khan, laid out like a 911 instrument cluster: five pillars, fourteen KPIs, three risk gates, a live stress test and a Power BI model. Importer data is synthetic.">
+<meta name="theme-color" content="#050505">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2215%22 fill=%22%23050505%22 stroke=%22%23ffffff%22 stroke-width=%222%22/%3E%3Cpath d=%22M16 16L24 9%22 stroke=%22%23ffffff%22 stroke-width=%222.5%22 stroke-linecap=%22round%22/%3E%3Cpath d=%22M26 22.5l2 1.5%22 stroke=%22%23e3091b%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
 <link rel="preload" href="fonts/archivo-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="preload" href="fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:"Archivo";src:url(fonts/archivo-latin-standard-normal.woff2) format("woff2");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-latin-wght-normal.woff2) format("woff2");font-weight:100 800;font-display:swap}
+@font-face{font-family:"Instrument Serif";src:url(fonts/instrument-serif-latin-400-italic.woff2) format("woff2");font-style:italic;font-weight:400;font-display:swap}
 :root{
-  --ground:#181b1d;--panel:#202427;--panel2:#272c2f;--rule:#3a4044;--rule2:#2b3033;
-  --ink:#ece6d6;--ink2:#c9c4b6;--muted:#929992;
-  --green:#5cb87a;--amber:#f2b134;--red:#ec5b50;--irish:#2e7d4f;
+  --bg:#050505;--bg2:#0b0b0d;--card:rgba(13,13,15,.74);--card2:#101013;
+  --line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --ink:rgba(255,255,255,.93);--ink2:rgba(255,255,255,.66);--muted:rgba(255,255,255,.44);
+  --red:#e3091b;--red-ink:#ff4a4a;--red-glow:rgba(227,9,27,.6);--red-bg:rgba(48,2,4,.9);
+  --green:#3ddc84;--amber:#f5b62e;--slate:#93a1b5;
   --pa:#338ced;--pb:#e76624;--pc:#00a888;--pd:#9887ef;--pe:#e24d8b;
-  --wrap:1080px;
+  --sans:"Archivo",ui-sans-serif,system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--serif:"Instrument Serif",Georgia,serif;
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--ground);color:var(--ink);font-family:"Archivo",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.6;font-stretch:100%;font-weight:400;-webkit-font-smoothing:antialiased}
-a{color:var(--ink);text-decoration:underline;text-decoration-color:#6b7270;text-underline-offset:3px;text-decoration-thickness:1px}
-a:hover{text-decoration-color:var(--ink)}
-:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
-.wrap{max-width:var(--wrap);margin:0 auto;padding:0 24px}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--red-ink);outline-offset:3px;border-radius:4px}
+[hidden]{display:none!important}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.mono{font-family:var(--mono)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.num,.tab{font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- top bar + pill nav ---------- */
+.top{position:fixed;inset:0 0 auto 0;z-index:50;display:flex;align-items:center;justify-content:center;padding:14px 20px;pointer-events:none}
+.mark{position:absolute;left:24px;top:50%;transform:translateY(-50%);font:700 11px/1 var(--mono);letter-spacing:.28em;text-transform:uppercase;color:var(--ink2);text-decoration:none;pointer-events:auto}
+.mark b{color:var(--red-ink);font-weight:800}
+.pill{pointer-events:auto;display:flex;gap:2px;padding:4px;border-radius:99px;background:rgba(14,14,16,.82);border:1px solid var(--line2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.45);max-width:calc(100vw - 24px);overflow-x:auto;scrollbar-width:none}
+.pill button{font:700 12.5px/1 var(--sans);letter-spacing:.01em;color:var(--muted);background:none;border:0;border-radius:99px;padding:10px 15px;cursor:pointer;white-space:nowrap;transition:color .2s,background .2s}
+.pill button:hover{color:var(--ink)}
+.pill button[aria-selected=true]{color:#fff;background:#232327;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.pill button[aria-selected=true]::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);margin-right:7px;vertical-align:2px}
+
+/* ---------- shared type ---------- */
+.kick{display:inline-flex;align-items:center;gap:10px;font:800 10.5px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;color:var(--red-ink);background:var(--red-bg);border:1px solid rgba(227,9,27,.32);border-radius:99px;padding:9px 16px}
+.kick.syn{color:var(--amber);background:rgba(46,32,4,.85);border-color:rgba(245,182,46,.3)}
+.kick.real{color:var(--green);background:rgba(4,40,22,.85);border-color:rgba(61,220,132,.28)}
+.lbl{font:700 11px/1.2 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--red-ink)}
+.lbl.muted{color:var(--slate)}
+h2.big{font:900 clamp(30px,4.3vw,56px)/1.02 var(--sans);font-stretch:108%;letter-spacing:-.035em;text-transform:uppercase;margin:16px 0 18px;color:#fff}
+h2.big .r{color:var(--red);text-shadow:0 0 34px rgba(227,9,27,.45)}
+h2.big em,h1 em{font-family:var(--serif);font-style:italic;font-weight:400;text-transform:none;letter-spacing:-.01em;color:var(--red);text-shadow:0 0 40px var(--red-glow)}
+.rule{width:56px;height:3px;background:var(--red);box-shadow:0 0 14px var(--red);margin:0 0 22px;border:0}
+.prose{font:400 14.5px/1.75 var(--mono);color:var(--ink2);max-width:62ch;margin:0 0 18px}
+.prose b{color:var(--ink);font-weight:700}
+.small{font:400 12px/1.6 var(--mono);color:var(--muted)}
+.small a{color:var(--ink2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+.chip{font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);border:1px solid var(--line2);background:rgba(255,255,255,.03);border-radius:6px;padding:8px 10px;display:inline-flex;align-items:center;gap:7px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:0}
+.btn{font:800 11.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:rgba(255,255,255,.04);border:1px solid var(--line2);border-radius:8px;padding:14px 18px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:border-color .2s,box-shadow .2s,background .2s}
+.btn:hover{border-color:rgba(255,255,255,.3)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.red{border-color:rgba(227,9,27,.55);background:rgba(227,9,27,.12);box-shadow:0 0 24px rgba(227,9,27,.18)}
+.btn.red:hover{box-shadow:0 0 34px rgba(227,9,27,.4)}
+.btn.blue{border-color:rgba(51,140,237,.4)}
+.btn.teal{border-color:rgba(0,168,136,.4)}
+section.blk{padding:110px 0 0}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.grid2>*{min-width:0}
+@media(max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 10.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.GREEN{color:var(--green);font-weight:700}.AMBER{color:var(--amber);font-weight:700}.RED{color:var(--red-ink);font-weight:700}
+code{font-family:var(--mono);font-size:12.5px;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:4px}
+.view{min-height:100svh;padding-bottom:120px;animation:viewin .45s ease both}
+@keyframes viewin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.vhead{padding-top:120px}
+.next{display:flex;justify-content:flex-end;margin-top:70px}
 
 /* ---------- hero ---------- */
-.hero{position:relative;height:100svh;min-height:640px;max-height:1240px;overflow:hidden;isolation:isolate}
-.hero-photo{position:absolute;inset:0;z-index:-2;overflow:hidden;container-type:size;background:radial-gradient(ellipse at 55% 62%,#2a2f33 0%,var(--ground) 72%)}
-.frame{position:absolute;left:50%;top:60%;width:max(100cqw,150cqh);aspect-ratio:3/2;transform:translate(-50%,-60%);animation:drift 34s ease-in-out infinite alternate;will-change:scale}
-.frame img{position:absolute;inset:0;width:100%;height:100%;display:block;color:transparent}
-.plate{position:absolute;left:28.6%;top:79.2%;width:12.4%;height:6.8%;border-radius:5px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);background:rgba(28,31,34,.35)}
-@keyframes drift{from{scale:1.02}to{scale:1.1}}
-.hero-shade{position:absolute;inset:0;z-index:-1;background:
-  linear-gradient(100deg,rgba(24,27,29,.9) 0%,rgba(24,27,29,.62) 30%,rgba(24,27,29,0) 58%),
-  linear-gradient(180deg,rgba(24,27,29,.55) 0%,rgba(24,27,29,0) 26%,rgba(24,27,29,0) 72%,rgba(24,27,29,.85) 100%)}
-.topbar{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding:22px 28px 0;font-size:14.5px;flex-wrap:wrap}
-.topbar .who{font-weight:680;font-stretch:112%;letter-spacing:.01em;font-size:16px}
-.topbar nav{display:flex;gap:22px;flex-wrap:wrap}
-.topbar nav a{color:var(--ink2);text-decoration:none}
-.topbar nav a:hover{color:var(--ink)}
-.hero-copy{padding:clamp(28px,7vh,90px) 28px 0;max-width:900px}
-h1{font-stretch:125%;font-weight:760;font-size:clamp(44px,6.3vw,94px);line-height:.92;letter-spacing:-.03em;margin:0 0 24px}
-.lede{font-size:18px;line-height:1.55;color:var(--ink2);max-width:36em;margin:0;text-shadow:0 1px 12px rgba(0,0,0,.6)}
-.lede-note{font-size:14.5px;color:var(--muted);margin:14px 0 0;max-width:40em}
+.hero{position:relative;min-height:100svh;display:flex;align-items:center;overflow:hidden;isolation:isolate;padding:96px 0 70px}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(ellipse 42% 55% at 74% 58%,rgba(227,9,27,.26),transparent 70%),radial-gradient(ellipse 60% 50% at 20% 30%,rgba(255,255,255,.035),transparent 70%)}
+.hero-photo{position:relative;margin:0 0 0 auto;width:min(100%,470px);aspect-ratio:4/5;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 0 0 1px rgba(227,9,27,.18),0 40px 100px rgba(0,0,0,.65),0 0 110px rgba(227,9,27,.28)}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:30% 78%;display:block;animation:drift 26s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.02)}to{transform:scale(1.1) translate(-1.5%,-1%)}}
+.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,5,5,.15) 0%,transparent 35%,transparent 70%,rgba(5,5,5,.7) 100%);pointer-events:none}
+.hero-photo figcaption{position:absolute;left:16px;right:16px;bottom:14px;z-index:1;display:flex;justify-content:space-between;gap:10px;font:700 10px/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+.hero-photo figcaption b{color:var(--red-ink)}
+.hero-photo .tagchip{position:absolute;top:14px;left:14px;z-index:1}
+.gridbg{position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 40% 45%,#000 20%,transparent 80%);mask-image:radial-gradient(ellipse 70% 60% at 40% 45%,#000 20%,transparent 80%)}
+.hero-in{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr);gap:48px;align-items:center;width:100%}
+h1{margin:26px 0 22px;line-height:.86}
+h1 .a{display:block;font:900 clamp(44px,6.5vw,104px)/.86 var(--sans);font-stretch:100%;letter-spacing:-.045em;text-transform:uppercase;background:linear-gradient(180deg,#fff 0%,#fff 48%,rgba(255,255,255,.18) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 em{display:block;font-size:clamp(52px,7.6vw,122px);line-height:.95;margin-top:2px}
+.tagline{font:700 19px/1.3 var(--mono);color:#fff;margin:0 0 10px}
+.subcaps{font:500 12px/1.7 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);max-width:46ch;margin:0 0 24px}
+.tested{display:flex;align-items:center;gap:14px;border:1px solid var(--line2);background:rgba(10,10,12,.6);border-radius:10px;padding:13px 16px;text-decoration:none;font:500 12.5px/1.5 var(--mono);color:var(--ink2);max-width:540px;transition:border-color .2s}
+.tested:hover{border-color:rgba(255,255,255,.3)}
+.tested .t{font-weight:800;letter-spacing:.18em;color:var(--red-ink);text-transform:uppercase;font-size:11px}
+.tested b{color:#fff}.tested .g{color:var(--green);font-weight:700}
+.tested .go,.launch .go{margin-left:auto;color:var(--ink2)}
+.launch{display:block;margin-top:22px;max-width:540px;text-decoration:none;background:rgba(10,10,12,.92);border:1px solid rgba(227,9,27,.5);border-radius:10px;padding:18px 18px 16px;box-shadow:0 0 44px rgba(227,9,27,.38),inset 0 0 0 1px rgba(227,9,27,.08);transition:box-shadow .25s,transform .25s}
+.launch:hover{box-shadow:0 0 60px rgba(227,9,27,.55);transform:translateY(-1px)}
+.launch-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font:800 12.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:#fff}
+.launch-top .rd{width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+.live{font:700 10px/1 var(--mono);letter-spacing:.12em;color:var(--green);border:1px solid rgba(61,220,132,.35);border-radius:99px;padding:5px 9px;background:rgba(61,220,132,.08)}
+.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:0;animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.launch .chips{margin:14px 0 0}
+.herobtns{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:540px;margin-top:16px}
 
-.dash{position:relative;z-index:2;margin-top:-86px;padding:40px 16px 30px;background:linear-gradient(180deg,#1e2225 0%,#15181a 100%);border-top:1px solid #3c4347;border-radius:50% 50% 0 0/64px 64px 0 0;box-shadow:0 -24px 60px rgba(0,0,0,.5)}
-.cluster{--u:min(1px,calc((100vw - 56px)/960));display:flex;justify-content:center;align-items:center;gap:calc(14 * var(--u))}
+.decomp{padding:22px 24px 20px;background:rgba(12,12,14,.82);border:1px solid rgba(255,255,255,.1);border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(227,9,27,.06);position:relative}
+.decomp::after{content:"";position:absolute;right:-1px;bottom:-1px;width:70px;height:70px;border-right:2px solid var(--red);border-bottom:2px solid var(--red);border-radius:0 0 16px 0;box-shadow:6px 6px 24px -6px var(--red-glow);pointer-events:none}
+.dc-h{display:flex;justify-content:space-between;align-items:center;gap:10px;font:800 10.5px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#fff}
+.dc-h .rd{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);margin-right:9px}
+.dc-nav{display:flex;align-items:center;gap:6px;color:var(--ink2);letter-spacing:.08em}
+.dc-nav button{width:26px;height:26px;border-radius:6px;border:1px solid var(--line2);background:none;color:var(--ink);cursor:pointer;font:700 13px/1 var(--mono)}
+.dc-sub{font:600 10.5px/1 var(--mono);color:var(--green);letter-spacing:.08em;margin:16px 0 4px}
+.dc-sub span{color:var(--muted)}
+.dc-lbl{font:700 10px/1 var(--mono);letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin:16px 0 6px}
+.dc-gross{font:800 34px/1 var(--mono);letter-spacing:-.02em;color:rgba(255,255,255,.78);font-variant-numeric:tabular-nums}
+.dc-rows{margin:16px 0 0;padding:0;list-style:none}
+.dc-rows li{display:grid;grid-template-columns:170px 1fr 64px;align-items:center;gap:12px;font:600 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);padding:7px 0}
+.dc-rows .bar{height:3px;border-radius:2px;background:rgba(255,255,255,.06);position:relative}
+.dc-rows .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.dc-rows .v{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.dc-net{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:10px;padding-top:12px;font:700 10px/1 var(--mono);letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+.dc-net b{color:var(--ink);letter-spacing:.02em}
+.dc-total-l{font:800 10.5px/1 var(--mono);letter-spacing:.22em;color:var(--red-ink);text-transform:uppercase;margin:22px 0 8px}
+.dc-total{font:900 58px/1 var(--mono);letter-spacing:-.03em;color:#fff;text-shadow:0 0 28px rgba(227,9,27,.75);font-variant-numeric:tabular-nums}
+.dc-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px;font:700 10px/1.4 var(--mono);letter-spacing:.14em;color:var(--slate);text-transform:uppercase}
+.lightbar{position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent 0%,#ff1b2d 10%,#ff4352 50%,#ff1b2d 90%,transparent 100%);box-shadow:0 0 16px 3px rgba(227,9,27,.75),0 0 70px 14px rgba(227,9,27,.32);transform:scaleX(0);transform-origin:50% 50%;animation:barOn 1.3s .5s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes barOn{0%{transform:scaleX(0);opacity:.4}70%{opacity:1}100%{transform:scaleX(1);opacity:1}}
+
+/* ---------- overview blocks ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(20,20,22,.6);border:1px solid var(--line);border-radius:24px;overflow:hidden;margin-top:56px}
+.stat{padding:38px 18px 34px;text-align:center;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat .n{font:900 52px/1 var(--sans);font-stretch:105%;letter-spacing:-.04em;color:#fff;font-variant-numeric:tabular-nums}
+.stat .n.g{color:var(--green);text-shadow:0 0 24px rgba(61,220,132,.35)}
+.stat .l{font:700 11.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-top:12px}
+.statcap{text-align:center;margin-top:16px}
+@media(max-width:760px){.stats{grid-template-columns:1fr 1fr}.stat:nth-child(2){border-right:0}.stat:nth-child(-n+2){border-bottom:1px solid var(--line)}.stat .n{font-size:40px}}
+.facts3{display:grid;gap:14px}
+.fact{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:rgba(14,14,16,.6)}
+.fact .n{font:900 34px/1 var(--sans);font-stretch:105%;letter-spacing:-.03em;color:#fff}
+.fact .n .r{color:var(--red);text-shadow:0 0 18px rgba(227,9,27,.4)}
+.fact p{margin:8px 0 0;font:400 13px/1.55 var(--mono);color:var(--ink2)}
+.feed td{font-family:var(--mono);font-size:13px}
+.feed tr.x td{background:rgba(227,9,27,.08)}
+.feed tr.x td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+.cta{position:relative;overflow:hidden;border-radius:24px;border:1px solid var(--line);margin-top:110px;padding:84px 48px;isolation:isolate;text-align:center}
+.cta img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 55%;z-index:-2;filter:brightness(.42) saturate(.75)}
+.cta::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 60% 70% at 50% 100%,rgba(227,9,27,.28),transparent 70%),linear-gradient(180deg,rgba(5,5,5,.35),rgba(5,5,5,.75))}
+.cta h2.big{font-size:clamp(28px,4.4vw,60px);margin:0 auto 18px;max-width:18ch}
+.cta .prose{margin:0 auto 28px;text-align:center}
+.cta .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* ---------- cockpit ---------- */
+.dash{position:relative;margin-top:34px;padding:46px 16px 30px;background:linear-gradient(180deg,#101114 0%,#08090a 100%);border-top:1px solid rgba(255,255,255,.12);border-radius:50% 50% 0 0/70px 70px 0 0;box-shadow:0 -30px 80px rgba(0,0,0,.6)}
+.dash::before{content:"";position:absolute;left:18%;right:18%;top:-1px;height:2px;background:linear-gradient(90deg,transparent,rgba(227,9,27,.9),transparent);box-shadow:0 0 18px rgba(227,9,27,.7);border-radius:2px}
+.cluster{--u:min(1px,calc((100vw - 56px)/980));display:flex;justify-content:center;align-items:center;gap:calc(14 * var(--u))}
 .dial{display:flex;flex-direction:column;align-items:center;gap:8px;margin:0}
-.dial svg{width:calc(var(--w) * var(--u));height:auto;display:block;overflow:visible}
-.dial figcaption{font-size:14px;line-height:1.3;text-align:center;max-width:calc(var(--w) * var(--u) + 20px);color:var(--ink2)}
-.dial figcaption .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:0}
-.dial figcaption b{font-weight:600;color:var(--ink)}
-.dial figcaption .wt{color:var(--muted);margin-left:4px}
+.dialbtn{background:none;border:0;padding:0;cursor:pointer;border-radius:50%;color:inherit;display:block}
+.dial svg{width:calc(var(--w) * var(--u));height:auto;display:block;overflow:visible;transition:width .7s cubic-bezier(.3,1.1,.4,1),filter .3s}
+.dialbtn:hover svg{filter:drop-shadow(0 0 10px rgba(255,255,255,.12))}
+.dialbtn[aria-pressed=true] svg{filter:drop-shadow(0 0 16px rgba(227,9,27,.55))}
+.dialbtn[aria-pressed=true] .bezel{stroke:var(--red)}
+.dial figcaption{font:600 11px/1.35 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-align:center;max-width:180px;color:var(--ink2)}
+.dial figcaption .wt{color:var(--muted);margin-left:5px;font-variant-numeric:tabular-nums}
 .dial .cv{display:none}
-.bezel{fill:#0c0e0f;stroke:url(#bezelg);stroke-width:2.5}
+.bezel{fill:#060607;stroke:url(#bezelg);stroke-width:2.5;transition:stroke .3s}
 .face{fill:url(#faceg)}
-.tick{stroke:#7d847f;stroke-width:1.3}
-.tick.maj{stroke:var(--ink);stroke-width:2.4}
+.tick{stroke:#6d7073;stroke-width:1.3}
+.tick.maj{stroke:#f2f2f2;stroke-width:2.4}
 .tick.lim{stroke:var(--red);stroke-width:4.5;stroke-linecap:round}
-.zone{fill:none;stroke:var(--irish);stroke-width:6}
-.dnum{fill:var(--ink);font-family:"Archivo",system-ui,sans-serif;font-stretch:78%;font-weight:600;text-anchor:middle;dominant-baseline:central}
-.dread{fill:var(--ink);font-family:"Archivo",system-ui,sans-serif;font-stretch:78%;font-weight:650;text-anchor:middle;font-variant-numeric:tabular-nums}
-.dunit{fill:var(--muted);font-family:"Archivo",system-ui,sans-serif;font-size:11px;text-anchor:middle}
+.zone{fill:none;stroke:#1f8a4c;stroke-width:6}
+.dnum{fill:#f2f2f2;font-family:var(--sans);font-stretch:78%;font-weight:600;text-anchor:middle;dominant-baseline:central}
+.dread{fill:#fff;font-family:var(--mono);font-weight:800;text-anchor:middle;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .needle{transform-box:view-box;transform-origin:100px 100px;transition:transform 1.15s cubic-bezier(.34,1.2,.42,1)}
-.needle line{stroke:#f5efdd;stroke-width:3.4;stroke-linecap:round}
-.needle .tail{stroke:#f5efdd;stroke-width:5}
-.hub{fill:#2b3034;stroke:#c9c4b6;stroke-width:1.6}
-
-.dash-foot{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px 28px;max-width:1060px;margin:20px auto 0;padding:0 8px}
-.lamps{display:flex;gap:14px;justify-self:end}
-.lamp{display:flex;align-items:center;gap:8px;padding:7px 12px 7px 9px;border:1px solid var(--rule2);border-radius:99px;background:#121416;font-size:13.5px;color:var(--muted);line-height:1.2}
-.lamp svg{width:20px;height:20px;flex:none}
-.lamp svg *{fill:none;stroke:#4d5458;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.lamp .st{font-weight:600}
-.lamp[data-s="AMBER"]{color:var(--amber);border-color:#5a4520}
-.lamp[data-s="AMBER"] svg *{stroke:var(--amber)}
-.lamp[data-s="AMBER"] svg{filter:drop-shadow(0 0 5px rgba(242,177,52,.8))}
-.lamp[data-s="RED"]{color:var(--red);border-color:#5e2a26}
-.lamp[data-s="RED"] svg *{stroke:var(--red)}
-.lamp[data-s="RED"] svg{filter:drop-shadow(0 0 6px rgba(236,91,80,.9))}
+.needle line{stroke:#ff3344;stroke-width:3.2;stroke-linecap:round}
+.needle .tail{stroke:#ff3344;stroke-width:5}
+.hub{fill:#18181b;stroke:#cfcfcf;stroke-width:1.6}
+.dash-foot{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px 26px;max-width:1080px;margin:22px auto 0;padding:0 8px}
+.readout{font:500 12.5px/1.6 var(--mono);color:var(--ink2);margin:0;justify-self:start}
+.readout b{color:#fff}
 .picker{display:flex;align-items:center;gap:8px}
-.picker button,.picker select{font:inherit;font-size:15px;color:var(--ink);background:var(--panel2);border:1px solid var(--rule);border-radius:6px;height:40px}
-.picker button{width:40px;cursor:pointer;font-size:18px;line-height:1}
-.picker button:hover{border-color:#6b7270}
+.picker button,.picker select{font:600 13px/1 var(--mono);color:var(--ink);background:#141417;border:1px solid var(--line2);border-radius:8px;height:40px}
+.picker button{width:40px;cursor:pointer;font-size:16px}
 .picker select{padding:0 34px 0 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%);background-position:calc(100% - 17px) 17px,calc(100% - 12px) 17px;background-size:5px 5px;background-repeat:no-repeat;cursor:pointer}
-.readout{font-size:15px;color:var(--ink2);margin:0;justify-self:start}
-.readout b{color:var(--ink);font-weight:650}
-.dash-note{max-width:820px;margin:16px auto 0;text-align:center;font-size:13.5px;color:var(--muted);line-height:1.5;padding:0 12px}
-
-/* ---------- page ---------- */
-nav.toc{position:sticky;top:0;z-index:10;background:rgba(24,27,29,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--rule2)}
-nav.toc .wrap{display:flex;gap:22px;overflow-x:auto;padding-top:11px;padding-bottom:11px;font-size:14px;white-space:nowrap;scrollbar-width:none}
-nav.toc a{color:var(--muted);text-decoration:none}
-nav.toc a:hover{color:var(--ink)}
-section{padding:88px 0 0;scroll-margin-top:40px}
-h2{font-stretch:112%;font-weight:680;font-size:clamp(27px,3.4vw,36px);line-height:1.12;letter-spacing:-.018em;margin:0 0 12px}
-h2 .sn{font-stretch:75%;font-weight:500;color:var(--muted);margin-right:.45em;font-variant-numeric:tabular-nums}
-h3{font-weight:650;font-size:19px;line-height:1.3;margin:28px 0 10px}
-.sub{color:var(--ink2);margin:0 0 26px;max-width:44em}
-p{max-width:46em}
-.panel{background:var(--panel);border:1px solid var(--rule2);border-radius:8px;padding:22px 24px;margin:16px 0;overflow-x:auto}
-@media(max-width:560px){.panel{padding:18px 16px}}
-.panel > h3:first-child{margin-top:0}
-.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
-.grid2>*{min-width:0}
-@media(max-width:820px){.grid2{grid-template-columns:minmax(0,1fr)}}
-.tag{display:inline-block;vertical-align:.35em;font-stretch:100%;font-size:12.5px;font-weight:600;letter-spacing:.01em;padding:3px 10px;border-radius:99px;margin-left:10px;border:1px solid}
-.tag.real{color:var(--green);border-color:#2f5a3d}
-.tag.syn{color:var(--amber);border-color:#5a4520}
-.tag.prop{color:var(--ink2);border-color:var(--rule)}
-table{border-collapse:collapse;width:100%;font-size:15px}
-th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--rule2);vertical-align:top}
-th{font-size:13px;font-weight:600;font-stretch:88%;color:var(--muted);border-bottom-color:var(--rule);letter-spacing:.01em}
-td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-.GREEN{color:var(--green);font-weight:650}.AMBER{color:var(--amber);font-weight:650}.RED{color:var(--red);font-weight:650}
-.callout{border-left:3px solid var(--ink2);padding:6px 0 6px 18px;margin:20px 0;color:var(--ink2)}
-.callout b{color:var(--ink)}
-.callout.syn{border-color:var(--amber)}
-.small{font-size:14px;color:var(--muted)}
-.small a{color:var(--ink2)}
-code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
-code{color:var(--ink);background:var(--panel2);padding:1px 5px;border-radius:4px}
-pre{background:#121416;color:#e6e0cf;padding:18px 20px;border-radius:6px;border:1px solid var(--rule2);overflow:auto;line-height:1.55;margin:0}
-ul.tight,ol.tight{margin:6px 0 0 20px;padding:0}
-ul.tight li,ol.tight li{margin:6px 0}
-.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:0}
-.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 22px;margin:4px 0 16px}
-.controls label{font-size:14px;color:var(--ink2);display:block}
-.controls .pv{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
-input[type=range]{width:100%;accent-color:var(--ink)}
-input[type=checkbox]{accent-color:var(--ink)}
-button.plain{font:inherit;font-size:14px;color:var(--ink);background:var(--panel2);border:1px solid var(--rule);border-radius:6px;padding:7px 14px;cursor:pointer}
-button.plain:hover{border-color:#6b7270}
+.lamps{display:flex;gap:10px;justify-self:end;flex-wrap:wrap}
+.lamp{display:flex;align-items:center;gap:8px;padding:7px 12px 7px 9px;border:1px solid var(--line);border-radius:99px;background:#0b0b0d;font:600 11px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.lamp svg{width:19px;height:19px;flex:none}
+.lamp svg *{fill:none;stroke:#3e4044;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.lamp .st{font-weight:800}
+.lamp[data-s=AMBER]{color:var(--amber);border-color:rgba(245,182,46,.35)}
+.lamp[data-s=AMBER] svg *{stroke:var(--amber)}
+.lamp[data-s=AMBER] svg{filter:drop-shadow(0 0 6px rgba(245,182,46,.85))}
+.lamp[data-s=RED]{color:var(--red-ink);border-color:rgba(227,9,27,.45)}
+.lamp[data-s=RED] svg *{stroke:var(--red-ink)}
+.lamp[data-s=RED] svg{filter:drop-shadow(0 0 7px rgba(255,74,74,.95))}
+.modes{display:flex;justify-content:center;gap:0;margin:26px auto 0;width:max-content;max-width:100%;border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:#0b0b0d}
+.modes button{font:800 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);background:none;border:0;border-right:1px solid var(--line);padding:12px 16px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:color .2s,background .2s}
+.modes button:last-child{border-right:0}
+.modes button small{font:500 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--muted);opacity:.8}
+.modes button:hover{color:var(--ink)}
+.modes button[aria-checked=true]{color:#fff;background:rgba(227,9,27,.14);box-shadow:inset 0 -2px 0 var(--red)}
+.modecap{text-align:center;margin:12px auto 0;max-width:70ch}
+.drill{max-width:1080px;margin:26px auto 0}
+.attbar{width:100%;max-width:300px;height:18px;display:block}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px 22px;margin:0 0 18px}
+.controls label{font:600 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);display:block}
+.controls .pv{color:#fff;margin-left:4px}
+input[type=range]{width:100%;accent-color:var(--red)}
+input[type=checkbox]{accent-color:var(--red)}
 .rowbtn{cursor:pointer}
-.rowbtn:hover td{background:#252a2d}
-.rowbtn.sel td{background:#2a3033}
-.rowbtn.sel td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
-.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;color:var(--ink2);margin:6px 0 12px}
-.mini{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 6px}
-.mini figure{margin:0;display:flex;flex-direction:column;align-items:center;width:96px}
-.mini svg{width:96px;height:auto}
-.mini figcaption{font-size:12px;color:var(--ink2);text-align:center;line-height:1.25;margin-top:4px}
-.shot{display:block;width:100%;height:auto;border-radius:6px;border:1px solid var(--rule)}
-.status td:first-child{width:28px;padding-right:0}
-.ok{color:var(--green)}.no{color:var(--muted)}
+.rowbtn td{transition:background .2s}
+.rowbtn:hover td{background:rgba(255,255,255,.03)}
+.rowbtn.sel td{background:rgba(227,9,27,.08)}
+.rowbtn.sel td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+#rank td{font-family:var(--mono);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font:600 10.5px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:0 0 10px}
+.mini{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 8px}
+.mini figure{margin:0;display:flex;flex-direction:column;align-items:center;width:92px}
+.mini svg{width:92px;height:auto}
+.mini figcaption{font:600 9.5px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);text-align:center;margin-top:5px}
 
-/* lineage */
-.why-lead{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px 48px;align-items:start}
-@media(max-width:820px){.why-lead{grid-template-columns:1fr}}
-.why-lead p{font-size:18px;color:var(--ink2);margin:0 0 14px}
-.why-lead p.small{font-size:14px;color:var(--muted)}
-.facts{margin:0;padding:0;list-style:none;border-top:1px solid var(--rule)}
-.facts li{padding:14px 0;border-bottom:1px solid var(--rule2);font-size:15.5px;color:var(--ink2)}
-.facts b{color:var(--ink);font-weight:650}
-ol.lineage{list-style:none;margin:36px 0 0;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));border-top:1px solid var(--rule)}
-ol.lineage li{padding:16px 14px 18px 0;border-right:1px solid var(--rule2);padding-left:14px}
-ol.lineage li:first-child{padding-left:0}
-ol.lineage li:last-child{border-right:0}
-.gen{display:block;font-stretch:120%;font-weight:720;font-size:30px;letter-spacing:-.02em;line-height:1.05}
-.yrs{display:block;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin:6px 0 10px}
-ol.lineage p{font-size:14px;line-height:1.45;color:var(--ink2);margin:0}
-ol.lineage li.now .gen{color:var(--green)}
-@media(max-width:980px){ol.lineage{grid-template-columns:repeat(4,minmax(0,1fr))}ol.lineage li:nth-child(4){border-right:0}ol.lineage li:nth-child(5){padding-left:0}ol.lineage li:nth-child(n+5){border-top:1px solid var(--rule2)}}
-@media(max-width:560px){ol.lineage{grid-template-columns:repeat(2,minmax(0,1fr))}ol.lineage li{border-right:0;padding-left:0;border-top:1px solid var(--rule2)}ol.lineage li:nth-child(odd){border-right:1px solid var(--rule2)}ol.lineage li:nth-child(even){padding-left:14px}}
+/* ---------- method ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:40px}
+@media(max-width:960px){.steps{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 24px;position:relative}
+.step .no{font:800 11px/1 var(--mono);letter-spacing:.18em;color:var(--red-ink);text-transform:uppercase}
+.step h3{font:900 21px/1.1 var(--sans);font-stretch:105%;letter-spacing:-.02em;text-transform:uppercase;margin:14px 0 10px;color:#fff}
+.step p{font:400 13px/1.65 var(--mono);color:var(--ink2);margin:0}
+.term{background:#070708;border:1px solid var(--line2);border-radius:14px;overflow:hidden}
+.term-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font:700 10.5px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--slate)}
+.term pre{margin:0;padding:18px 18px 20px;font:500 12.5px/1.85 var(--mono);color:var(--ink2);white-space:pre-wrap;min-height:300px}
+.term .c{color:#fff}.term .g{color:var(--green)}.term .r{color:var(--red-ink)}.term .a{color:var(--amber)}.term .m{color:var(--muted)}
+.cursor{display:inline-block;width:8px;height:14px;background:var(--green);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+.btn.sm{padding:9px 12px;font-size:10.5px}
 
-footer{margin-top:96px;border-top:1px solid var(--rule2);padding:36px 0 64px;font-size:14px;color:var(--muted)}
-footer p{margin:0 0 10px;max-width:60em}
-footer b{color:var(--ink2);font-weight:600}
-footer a{color:var(--ink2)}
+/* ---------- stress ---------- */
+.mc-ctrl{display:flex;flex-wrap:wrap;gap:16px 26px;align-items:center;margin-bottom:18px}
+.mc-ctrl label{font:600 11px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);display:flex;flex-direction:column;gap:6px;min-width:230px}
+.mc-prog{font:800 13px/1 var(--mono);letter-spacing:.08em;color:#fff;font-variant-numeric:tabular-nums}
+.mc-prog span{color:var(--muted);font-weight:600}
+.pbar{height:2px;background:var(--line);border-radius:2px;margin:12px 0 18px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--red);box-shadow:0 0 10px var(--red)}
+ul.read{margin:0;padding:0 0 0 18px;font:400 13px/1.7 var(--mono);color:var(--ink2)}
+ul.read li{margin:0 0 10px}
+ul.read b{color:#fff}
 
-/* ---------- responsive hero ---------- */
+/* ---------- power bi ---------- */
+.shotbtn{display:block;width:100%;padding:0;border:1px solid var(--line2);border-radius:10px;overflow:hidden;cursor:zoom-in;background:#fff}
+.shotbtn img{display:block;width:100%;height:auto}
+pre.dax{margin:0;background:#070708;border:1px solid var(--line);border-radius:10px;padding:18px;overflow:auto;font:500 12.5px/1.6 var(--mono);color:#e6e6e6;max-height:520px}
+pre.dax .k{color:var(--red-ink)}pre.dax .f{color:#7cc7ff}pre.dax .s{color:var(--green)}
+ol.mig{list-style:none;margin:0;padding:0;counter-reset:m}
+ol.mig li{counter-increment:m;display:grid;grid-template-columns:44px 1fr;gap:6px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px;color:var(--ink2)}
+ol.mig li::before{content:counter(m,decimal-leading-zero);font:800 11px/1.9 var(--mono);color:var(--red-ink);letter-spacing:.1em}
+ol.mig b{color:#fff}
+.status{list-style:none;margin:0;padding:0}
+.status li{display:flex;justify-content:space-between;gap:18px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink2)}
+.status .s{font:800 10.5px/1.6 var(--mono);letter-spacing:.14em;white-space:nowrap;text-transform:uppercase}
+.status .s.ok{color:var(--green)}.status .s.pl{color:var(--slate)}
+dialog.lb{border:0;padding:0;background:transparent;max-width:min(1400px,96vw)}
+dialog.lb::backdrop{background:rgba(0,0,0,.85);backdrop-filter:blur(4px)}
+dialog.lb img{display:block;max-width:100%;max-height:90vh;border-radius:10px}
+dialog.lb form{position:absolute;top:10px;right:10px}
+
+/* ---------- garage ---------- */
+.garage{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:22px;margin-top:40px;align-items:start}
+@media(max-width:860px){.garage{grid-template-columns:1fr}}
+.photo{position:relative;margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0b0b0d}
+.photo button{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.photo img{display:block;width:100%;height:auto;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.photo:hover img{transform:scale(1.03)}
+.photo figcaption{position:absolute;left:0;right:0;bottom:0;padding:40px 16px 14px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.85));font:700 10.5px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink2);pointer-events:none}
+.photo figcaption b{color:var(--red-ink)}
+.gen-track{display:grid;grid-template-columns:repeat(8,1fr);gap:0;margin-top:40px;position:relative}
+.gen-track::before{content:"";position:absolute;left:0;right:0;top:27px;height:1px;background:var(--line2)}
+.gen-btn{background:none;border:0;cursor:pointer;padding:0 0 14px;display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--muted);position:relative}
+.gen-btn .pt{width:13px;height:13px;border-radius:50%;background:#141417;border:2px solid #3a3a3f;margin-top:21px;transition:all .25s}
+.gen-btn .cd{font:900 22px/1 var(--sans);font-stretch:112%;letter-spacing:-.02em;transition:color .25s}
+.gen-btn .yr{font:600 10px/1 var(--mono);letter-spacing:.08em}
+.gen-btn:hover .cd{color:#fff}
+.gen-btn[aria-selected=true]{color:#fff}
+.gen-btn[aria-selected=true] .pt{background:var(--red);border-color:#ff7a84;box-shadow:0 0 16px var(--red)}
+.gen-btn[aria-selected=true] .cd{color:#fff;text-shadow:0 0 18px rgba(227,9,27,.6)}
+.gen-card{margin-top:18px;display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center}
+.gen-card .big{font:900 clamp(56px,8vw,104px)/.9 var(--sans);font-stretch:112%;letter-spacing:-.05em;background:linear-gradient(180deg,#fff 40%,rgba(255,255,255,.2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.gen-card .yrs{font:800 11px/1 var(--mono);letter-spacing:.2em;color:var(--red-ink);text-transform:uppercase}
+.gen-card p{font:400 15px/1.6 var(--mono);color:var(--ink2);margin:10px 0 0}
+.gen-card .navs{display:flex;gap:8px}
+@media(max-width:700px){.gen-track{grid-template-columns:repeat(4,1fr);row-gap:10px}.gen-track::before{display:none}.gen-card{grid-template-columns:1fr}.gen-card .navs{justify-content:flex-start}}
+
+/* ---------- responsive ---------- */
+@media(max-width:980px){
+  .hero-in{grid-template-columns:1fr;gap:40px}
+  .hero-photo{margin:0;width:min(100%,520px)}
+}
 @media(max-width:760px){
-  .hero{height:auto;min-height:max(720px,100svh)}
-  .hero-photo{top:auto;height:min(60%,520px)}
-  .frame{top:58%;transform:translate(-50%,-58%)}
-  .hero-shade{background:linear-gradient(180deg,rgba(24,27,29,1) 0%,rgba(24,27,29,.92) 38%,rgba(24,27,29,0) 62%,rgba(24,27,29,0) 82%,rgba(24,27,29,.85) 100%)}
-  .hero-copy{padding:40px 20px 0}
-  .topbar{padding:18px 20px 0}
-  .topbar nav{gap:16px}
-  .lede{font-size:17px}
-  .dash{margin-top:-60px;border-radius:50% 50% 0 0/36px 36px 0 0;padding-top:30px}
-  .cluster{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 8px;justify-items:center;align-items:start}
-  .cluster .dial{--w:76 !important}
-  .cluster .dial svg{width:min(21vw,96px)}
-  .cluster .dial[data-p="A"]{grid-column:1/-1;order:-1}
-  .cluster .dial[data-p="A"] svg{width:min(74vw,290px)}
-  .dial figcaption{font-size:12.5px;max-width:none}
+  .wrap{padding:0 18px}
+  .mark{display:none}
+  .top{justify-content:flex-start;padding:12px}
+  .hero{padding-top:84px}
+  .hero-photo{aspect-ratio:4/4.4}
+  .dc-rows li{grid-template-columns:120px 1fr 54px;font-size:9.5px;gap:8px}
+  .dc-total{font-size:46px}
+  .herobtns{grid-template-columns:1fr}
+  section.blk{padding-top:84px}
+  .vhead{padding-top:96px}
+  .cta{padding:60px 22px}
+  .dash{border-radius:50% 50% 0 0/34px 34px 0 0;padding-top:30px}
+  .cluster{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 6px;justify-items:center;align-items:start}
+  .cluster .dial svg{width:min(21vw,92px)!important}
+  .cluster .dial[data-p=A]{grid-column:1/-1;order:-1}
+  .cluster .dial[data-p=A] svg{width:min(72vw,280px)!important}
   .cluster .dial:not([data-p=A]) .dread{display:none}
-  .cluster .dial:not([data-p=A]) .cv{display:block;font-size:16px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums;font-stretch:85%;margin-bottom:2px}
-  .topbar nav a.hm{display:none}
+  .cluster .dial:not([data-p=A]) .cv{display:block;font:800 15px/1 var(--mono);color:#fff;letter-spacing:0;margin-bottom:4px}
+  .dial figcaption{font-size:9.5px;letter-spacing:.04em}
   .dash-foot{grid-template-columns:1fr;justify-items:center;text-align:center}
-  .lamps{justify-self:center;flex-wrap:wrap;justify-content:center}
+  .lamps{justify-self:center;justify-content:center}
   .readout{justify-self:center}
+  .modes{display:grid;grid-template-columns:repeat(3,1fr);width:100%}
+  .modes button{border-bottom:1px solid var(--line)}
+  .card{padding:18px 16px}
 }
 @media(prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  .frame{animation:none}
-  .needle{transition:none}
+  .hero-photo img,.view,.lightbar{animation:none}
+  .lightbar{transform:none}
+  .needle,.dial svg,.dc-rows .bar i{transition:none}
 }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="faceg" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#17171a"/><stop offset="1" stop-color="#050506"/></radialGradient><linearGradient id="bezelg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a7a80"/><stop offset=".5" stop-color="#26262a"/><stop offset="1" stop-color="#4c4c52"/></linearGradient></defs></svg>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><radialGradient id="faceg" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#1e2225"/><stop offset="1" stop-color="#0e1012"/></radialGradient><linearGradient id="bezelg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a7275"/><stop offset=".5" stop-color="#2c3236"/><stop offset="1" stop-color="#4a5155"/></linearGradient></defs></svg>
-<header class="hero" id="top">
-  <div class="hero-photo"><div class="frame" id="hero-frame"><img alt="A white 992-generation Porsche 911 parked on a city street at night, seen from behind"
-    src="https://images.unsplash.com/photo-1658977357887-b63412456f01?auto=format&amp;q=70&amp;w=2000"
-    srcset="https://images.unsplash.com/photo-1658977357887-b63412456f01?auto=format&amp;q=70&amp;w=1200 1200w, https://images.unsplash.com/photo-1658977357887-b63412456f01?auto=format&amp;q=70&amp;w=2000 2000w, https://images.unsplash.com/photo-1658977357887-b63412456f01?auto=format&amp;q=68&amp;w=2800 2800w"
-    sizes="(max-width:760px) 1200px, 100vw" fetchpriority="high"><span class="plate" aria-hidden="true"></span></div></div>
-  <div class="hero-shade"></div>
-
-  <div class="topbar">
-    <span class="who">Amaan Khan</span>
-    <nav aria-label="Shortcuts"><a class="hm" href="#method">How it scores</a><a href="#results">Try the scorecard</a><a class="hm" href="#model">Power BI</a><a href="https://github.com/amaanthekhan/porsche-importer-scorecard">Code on GitHub</a></nav>
-  </div>
-
-  <div class="hero-copy">
-    <h1>Every importer,<br>on five&nbsp;dials</h1>
-    <p class="lede">A prototype of the Importer of the Year scorecard, laid out like a 911 instrument cluster. Each dial is one pillar of Porsche's published award criteria. The needle stops at a 110% cap the way a rev limiter does, and the risk gates light up as warning lamps.</p>
-    <p class="lede-note">Independent project, not affiliated with Porsche. Importer data is synthetic; regional figures are Porsche's own and cited below.</p>
-  </div>
+<header class="top">
+  <a class="mark" href="#overview">Amaan <b>Khan</b></a>
+  <nav class="pill" role="tablist" aria-label="Sections">
+    <button role="tab" data-v="overview">Overview</button>
+    <button role="tab" data-v="cockpit">Cockpit</button>
+    <button role="tab" data-v="method">Method</button>
+    <button role="tab" data-v="stress">Stress test</button>
+    <button role="tab" data-v="powerbi">Power BI</button>
+    <button role="tab" data-v="garage">Garage</button>
+  </nav>
 </header>
 
-<div class="dash" role="region" aria-label="Scorecard instrument cluster">
+<main>
+<!-- =============================== OVERVIEW =============================== -->
+<section class="view" id="v-overview" role="tabpanel" aria-label="Overview">
+  <div class="hero">
+    <div class="gridbg"></div>
+    <div class="wrap hero-in">
+      <div>
+        <span class="kick">Importer of the Year // Scorecard prototype</span>
+        <h1><span class="a">Every importer</span><em>on five dials.</em></h1>
+        <p class="tagline">A ranking is only as fair as its weights.</p>
+        <p class="subcaps">Five pillars. Fourteen KPIs. Three risk gates. One ranking you can defend in front of the importer.</p>
+        <a class="tested" href="#stress"><span class="t">Tested</span><span>Importer 15 leads in <b class="g">4,999 of 5,000</b> random weight sets.</span><span class="go">&#8594;</span></a>
+        <a class="launch" href="#cockpit">
+          <span class="launch-top"><span class="rd"></span>[ Open the cockpit ]<span class="live">Live in your browser</span><span class="go">&#8594;</span></span>
+          <span class="chips"><span class="chip">Drive modes</span><span class="chip">Risk lamps</span><span class="chip">KPI drill-down</span></span>
+        </a>
+        <div class="herobtns"><a class="btn blue" href="#method">[ Method ]</a><a class="btn teal" href="#powerbi">[ Power BI ]</a></div>
+      </div>
+      <figure class="hero-photo"><span class="kick tagchip" style="padding:7px 12px;font-size:9.5px">Shot by me</span><picture><source type="image/webp" srcset="img/amaan-997-800.webp 800w, img/amaan-997-1200.webp 1200w" sizes="(max-width:980px) 100vw, 470px"><img src="img/amaan-997-1200.jpg" alt="A white 997-generation Porsche 911 at night, rear three-quarter view, black wheels and yellow brake calipers" fetchpriority="high"></picture><figcaption><span><b>&#9679;</b> 997-generation 911</span><a href="#garage" style="color:inherit;text-decoration:none">Garage &#8594;</a></figcaption></figure>
+    </div>
+    <div class="lightbar" aria-hidden="true"></div>
+  </div>
+
+  <div class="wrap">
+    <section class="blk">
+      <span class="lbl">The problem</span>
+      <h2 class="big">A sales table rewards <span class="r">the market</span>, not the importer.</h2>
+      <hr class="rule">
+      <div class="grid2" style="gap:40px;align-items:center"><div>
+      <p class="prose">When regional volume falls for reasons no importer controls, a volume ranking punishes the wrong people. This scorecard measures <b>five pillars against fixed targets</b>, caps any single KPI at <b>110%</b>, and keeps risk <b>out of the points</b>.</p>
+      <div class="chips" id="pillar-chips"></div>
+      <p class="small">Pillars come from Porsche's published Importer of the Year criteria. The KPIs, targets and weights under them are my proposal.</p>
+      </div>
+      <aside class="decomp" aria-label="Pillar decomposition">
+        <div class="dc-h"><span><span class="rd"></span>Pillar decomposition</span><span class="dc-nav"><button type="button" id="dc-prev" aria-label="Previous importer">&lsaquo;</button><span id="dc-name"></span><button type="button" id="dc-next" aria-label="Next importer">&rsaquo;</button></span></div>
+        <div class="dc-sub">&#9679; Normal weights <span>// fact_scorecard</span></div>
+        <div class="dc-lbl">Simple average of pillars</div>
+        <div class="dc-gross" id="dc-avg"></div>
+        <ul class="dc-rows" id="dc-rows"></ul>
+        <div class="dc-net"><span>Weighted sum of 5 pillars</span><b id="dc-sum"></b></div>
+        <div class="dc-total-l">Total score // <span id="dc-rank"></span></div>
+        <div class="dc-total" id="dc-total"></div>
+        <div class="dc-foot"><span id="dc-gate"></span><span>Synthetic data</span></div>
+      </aside>
+      </div>
+      <div class="stats" id="stats">
+        <div class="stat"><div class="n" data-to="16">16</div><div class="l">Importers scored</div></div>
+        <div class="stat"><div class="n" data-to="14">14</div><div class="l">KPIs, five pillars</div></div>
+        <div class="stat"><div class="n" data-to="5000" data-sep="1">5,000</div><div class="l">Weight draws</div></div>
+        <div class="stat"><div class="n g" data-to="4" data-suffix="/4">4/4</div><div class="l">Data errors caught</div></div>
+      </div>
+      <p class="small statcap">Synthetic importer data // seed 20261115 // scored in Python, rebuilt and reconciled in Power BI</p>
+    </section>
+
+    <section class="blk">
+      <span class="kick real">The region // Public data</span>
+      <h2 class="big">Where the <span class="r">region</span> stands.</h2>
+      <div class="grid2">
+        <div class="card"><div class="card-h"><span class="lbl muted">New-vehicle deliveries // ME, Africa, Levant, India</span></div><div id="chart-deliv"></div>
+          <div class="legend"><span><span class="sw" style="background:#fff"></span>Reported by Porsche</span><span><span class="sw" style="background:#e3091b"></span>2025, reported</span><span><span class="sw" style="background:#4a4a50"></span>Derived (approx.)</span></div>
+          <p class="small" style="margin:0">2020, 2022 and 2023 are back-calculated from "+55% since 2020", "+4% in 2024" and "+11% the year prior". 2021 was not stated.</p></div>
+        <div class="facts3">
+          <div class="fact"><div class="n">9,628</div><p>New Porsche vehicles delivered in the region in 2025, +1% on 2024 and the best year in 12. Growth is flattening: +11%, +4%, +1%.</p></div>
+          <div class="fact"><div class="n">15% <span class="r">&#8594;</span> 23%</div><p>The 911's share of regional sales, 2020 to 2025. The mix is moving to the high-performance end.</p></div>
+          <div class="fact"><div class="n"><span class="r">&#8722;18%</span></div><p>H1 2026, "Overseas and Emerging Markets" (30,158 to 24,877) against &#8722;16% worldwide. Porsche names the Middle East conflict as one factor. That sales region is broader than this office's territory.</p></div>
+        </div>
+      </div>
+      <p class="small" style="margin-top:16px">Sources: <a href="https://newsroom.porsche.com/en_PME/2026/company/porsche-middle-east-africa-region-sales-result-2025-41577.html">Porsche ME&amp;A 2025 result</a>; <a href="https://newsroom.porsche.com/en_PME/2025/company/porsche-achieves-sustainable-growth-across-the-region.html">2024 result</a>; <a href="https://marhaba.qa/porsche-middle-east-and-africa-deliveries-increase-7-in-2019/">2019 result</a>; <a href="https://newsroom.porsche.com/en_PAP/2026/company/porsche-delivers-122306-sports-cars-in-the-first-half-of-the-year.html">H1 2026 deliveries</a>.</p>
+    </section>
+
+    <section class="blk">
+      <span class="lbl">Featured insight</span>
+      <h2 class="big">Third on score. <span class="r">Not eligible.</span></h2>
+      <div class="grid2">
+        <p class="prose" style="margin:0">Importer 11 posts the <b>third-highest total, 97.5</b>. Its integrity lamp is red: <b>four open high-severity audit findings</b>. It drops out of the award ranking and Importer 02 moves up to third. A strong sales year cannot buy back a compliance problem, and the reason for the exclusion is stated, not hidden.</p>
+        <div class="card" style="padding:0"><div class="card-h" style="padding:16px 18px 0"><span class="lbl muted">Score_feed // top five by total</span><span class="kick syn" style="padding:6px 10px;font-size:9px">Synthetic</span></div>
+          <div class="scroll"><table class="feed" id="feed"></table></div></div>
+      </div>
+    </section>
+
+    <div class="cta">
+      <picture><source type="image/webp" srcset="img/amaan-997-side-1600.webp"><img src="img/amaan-997-side-1600.jpg" alt=""></picture>
+      <span class="lbl">Built to be questioned</span>
+      <h2 class="big" style="margin-top:16px">A ranking you can defend in front of the <em>importer.</em></h2>
+      <p class="prose">Scored in Python, rebuilt and reconciled in Power BI, and laid out here so every number traces back to a rule.</p>
+      <div class="btns"><a class="btn red" href="#cockpit">[ Open the cockpit ]</a><a class="btn" href="#stress">[ Run the stress test ]</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- =============================== COCKPIT =============================== -->
+<section class="view" id="v-cockpit" role="tabpanel" aria-label="Cockpit" hidden>
+  <div class="wrap vhead">
+    <span class="kick syn">The cockpit // Synthetic data</span>
+    <h2 class="big">Five dials. <em>One verdict.</em></h2>
+    <p class="prose">Each dial is a pillar; its size is the pillar's weight. 100 is target. The red mark at 110 is the cap, which works like a <b>rev limiter</b>: beyond it, extra performance stops counting. Risk gates are <b>warning lamps</b>. Click a dial to see the KPIs behind it. Switch drive modes to re-weight the whole network.</p>
+  </div>
+  <div class="dash" role="region" aria-label="Instrument cluster">
     <div class="cluster" id="cluster"></div>
     <div class="dash-foot">
       <p class="readout" id="readout" aria-live="polite"></p>
       <div class="picker">
         <button type="button" id="prev" aria-label="Previous importer by score">&lsaquo;</button>
-        <label class="sr" for="imp">Importer shown on the dials</label>
+        <label class="sr" for="imp">Importer on the dials</label>
         <select id="imp"></select>
         <button type="button" id="next" aria-label="Next importer by score">&rsaquo;</button>
       </div>
       <div class="lamps" id="lamps" aria-label="Risk gates"></div>
     </div>
-    <p class="dash-note">Dial size follows pillar weight. 100 is the target. The red mark is the 110% cap: like a rev limiter, it stops one KPI from carrying a whole pillar. A red lamp takes an importer out of the award ranking, however high its score.</p>
-</div>
+    <div class="modes" role="radiogroup" aria-label="Drive mode (weight preset)" id="modes"></div>
+    <p class="small modecap" id="modecap"></p>
+    <div class="drill card" id="drill"></div>
+  </div>
+  <div class="wrap">
+    <section class="blk" style="padding-top:70px">
+      <span class="lbl">Standings</span>
+      <h2 class="big">The network, <span class="r">re-ranked live.</span></h2>
+      <div class="card">
+        <div class="controls" id="weights"></div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+          <label class="small" style="color:var(--ink2)"><input type="checkbox" id="gates" checked> Apply risk gates</label>
+          <button class="btn sm" id="reset" type="button">Reset to Normal</button>
+          <span class="small" id="wnote"></span>
+        </div>
+        <div class="legend" id="pleg"></div>
+        <div class="scroll"><table id="rank"></table></div>
+      </div>
+      <div class="card" id="detail" style="margin-top:16px"></div>
+    </section>
+    <div class="next"><a class="btn" href="#method">Next // Method &#8594;</a></div>
+  </div>
+</section>
 
-<nav class="toc" aria-label="Sections"><div class="wrap">
-<a href="#context">Context</a><a href="#framework">Framework</a><a href="#method">Method</a><a href="#results">Scorecard</a><a href="#sens">Sensitivity</a><a href="#dq">Data quality</a><a href="#model">Power BI</a><a href="#map">Role fit</a><a href="#limits">Limits</a><a href="#why">Why a 911</a>
-</div></nav>
-
-<main class="wrap">
-
-<section id="context">
-  <h2><span class="sn">1</span>Where the region stands<span class="tag real">Public data</span></h2>
-  <p class="sub">The only performance data that is genuinely public is regional. It sets the context a scorecard has to live in: growth since 2020, a record 911 share, and a sharp 2026 slowdown that Porsche links partly to the conflict in the Middle East.</p>
-  <div class="grid2">
-    <div class="panel"><h3>New-vehicle deliveries, Middle East, Africa, Levant and India</h3><div id="chart-deliv"></div>
-      <div class="legend"><span><span class="sw" style="background:#ece6d6"></span>Reported by Porsche</span><span><span class="sw" style="background:#5d6468"></span>Derived from reported growth rates (approximate)</span></div>
-      <p class="small">2019: Porsche's 2019 results release. 2024 and 2025: Porsche newsroom. 2020, 2022 and 2023 are back-calculated from "+55% since 2020", "+4% in 2024" and "+11% the year prior", so treat them as approximate. 2021 was not stated.</p></div>
-    <div class="panel"><h3>What the numbers say</h3>
-      <ul class="tight">
-        <li><b>+55% since 2020</b>, roughly 9% a year compounded (implied 2020 base of about 6,200). 2025 was the region's best year in 12 years.</li>
-        <li><b>The 911 grew from 15% to 23%</b> of regional sales between 2020 and 2025: mix is moving toward the high-performance end.</li>
-        <li><b>Growth is flattening:</b> +11% (2023), +4% (2024), +1% (2025).</li>
-        <li><b>Network investment in 2025:</b> four new Porsche Centres, three renovations, three Porsche Now locations.</li>
-        <li><b>Global 2025:</b> 279,449 deliveries worldwide, down 10%.</li>
-        <li><b>H1 2026:</b> the "Overseas and Emerging Markets" sales region fell 18% (30,158 to 24,877) against 16% worldwide. Porsche names the Middle East conflict and the end of 718 combustion production as contributing factors and does not quantify either. That sales region is broader than the Middle East and Africa office's territory, so it is a context signal, not the same population.</li>
-      </ul>
+<!-- =============================== METHOD =============================== -->
+<section class="view" id="v-method" role="tabpanel" aria-label="Method" hidden>
+  <div class="wrap vhead">
+    <span class="kick">The method // Proposal</span>
+    <h2 class="big">Four steps. <em>No black box.</em></h2>
+    <p class="prose">Every step is simple enough to explain to an importer's general manager in one minute. That is the test for a methodology that gets published.</p>
+    <div class="steps">
+      <div class="step"><span class="no">01 / Clean</span><h3>Check first</h3><p>Four data-quality rules run on every submission before anything is scored. Bad values are excluded, replaced with the importer's own mean of its other quarters, and logged.</p></div>
+      <div class="step"><span class="no">02 / Attain</span><h3>Against target</h3><p>Actual &divide; target where higher is better, target &divide; actual where lower is better. Capped at 110% so one outlier KPI cannot carry a pillar.</p></div>
+      <div class="step"><span class="no">03 / Weigh</span><h3>Five pillars</h3><p>Pillar score = weighted mean of its KPI attainments &times; 100. Total = pillars &times; weights 30, 20, 20, 15, 15. Weights are policy, so the stress test checks them.</p></div>
+      <div class="step"><span class="no">04 / Gate</span><h3>Risk lamps</h3><p>Financial, integrity and data-quality gates decide eligibility and never add points. Any red lamp removes an importer from the award ranking; its score is still shown.</p></div>
     </div>
+
+    <section class="blk">
+      <span class="lbl">Data quality // live</span>
+      <h2 class="big">Clean <span class="r">before</span> you score.</h2>
+      <div class="grid2">
+        <div class="term"><div class="term-h"><span>quality_checks // fy cycle</span><button class="btn sm" id="term-run" type="button">Run checks</button></div><pre id="term" aria-live="polite"></pre></div>
+        <div>
+          <p class="prose">I injected four deliberate errors into the synthetic data to confirm the rules find them. That proves the rules catch those four patterns, nothing more: real submissions will contain errors I have not thought of.</p>
+          <div class="card" style="padding:6px 18px"><table>
+            <tr><th>Rule</th><th>Test</th></tr>
+            <tr><td class="mono">R1</td><td>No blank values for a KPI an importer must report</td></tr>
+            <tr><td class="mono">R2</td><td>Percentages in 0 to 100, scores in &#8722;100 to 100</td></tr>
+            <tr><td class="mono">R3</td><td>A rate such as conversion that reads exactly 0</td></tr>
+            <tr><td class="mono">R4</td><td>More than 4 pooled standard deviations from the importer's own median</td></tr>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="blk">
+      <span class="lbl">Schema // dim_kpi</span>
+      <h2 class="big">Fourteen KPIs, <span class="r">defined.</span></h2>
+      <p class="prose">Porsche's <a href="https://dealer.porsche.com/kw/kuwait/en-GB/news-and-events/2026-Event-detail-page5">2025 Importer of the Year announcement</a> names what the award looks at: customer satisfaction, service quality, sales innovation, team efficiency and long-term loyalty. Those are the pillars. The KPIs are my proposal.</p>
+      <div class="card scroll" style="padding:8px 18px"><table id="kpi-table"></table></div>
+      <h3 class="lbl" style="margin:40px 0 14px">Risk gates</h3>
+      <div class="card scroll" style="padding:8px 18px"><table>
+        <tr><th>Gate</th><th>Green</th><th>Amber (eligible, escalate)</th><th>Red (not eligible)</th></tr>
+        <tr><td>Financial and business stability</td><td>Current ratio &ge; 1.2 and net debt/EBITDA &le; 3.0</td><td>Current ratio 1.0 to 1.2, or net debt/EBITDA 3.0 to 4.0</td><td>Current ratio &lt; 1.0, or net debt/EBITDA &gt; 4.0</td></tr>
+        <tr><td>Integrity and compliance</td><td>No open high-severity audit findings</td><td>1 to 2 open</td><td>3 or more open</td></tr>
+        <tr><td>Data quality</td><td>Reporting completeness &ge; 95%</td><td>90% to 95%</td><td>&lt; 90%</td></tr>
+      </table></div>
+      <h3 class="lbl" style="margin:40px 0 14px">Choices I would put in front of the importers</h3>
+      <div class="grid2">
+        <p class="prose" style="margin:0"><b>Targets, not peer rank, inside the score.</b> An importer is measured against a fixed target, so one importer improving does not push another down. <b>A cap at 110%</b> rewards beating a target without letting one KPI dominate.</p>
+        <p class="prose" style="margin:0"><b>Weights are policy, not maths</b>, which is why the stress test exists. <b>Four quarters averaged</b> to soften one bad quarter; a rolling view is a better fit for in-year steering.</p>
+      </div>
+    </section>
+    <div class="next"><a class="btn" href="#stress">Next // Stress test &#8594;</a></div>
   </div>
-  <div class="callout"><b>Why this matters for a scorecard:</b> when volume is under pressure for reasons outside an importer's control, a volume-only ranking punishes the wrong thing. That is the argument for scoring quality and loyalty pillars alongside sales, and for showing attainment against a target that moves with the market.</div>
-  <p class="small">Sources: <a href="https://newsroom.porsche.com/en_PME/2026/company/porsche-middle-east-africa-region-sales-result-2025-41577.html">Porsche Middle East and Africa 2025 sales result</a>; <a href="https://newsroom.porsche.com/en_PME/2025/company/porsche-achieves-sustainable-growth-across-the-region.html">2024 result</a>; <a href="https://marhaba.qa/porsche-middle-east-and-africa-deliveries-increase-7-in-2019/">2019 result (via Marhaba Qatar)</a>; <a href="https://newsroom.porsche.com/en_PAP/2026/company/porsche-delivers-122306-sports-cars-in-the-first-half-of-the-year.html">H1 2026 deliveries</a>; <a href="https://www.carscoops.com/2026/01/global-porsche-sales-tanked-in-2025-but-two-models-refused-to-comply/">2025 global deliveries (Carscoops)</a>.</p>
 </section>
 
-<section id="framework">
-  <h2><span class="sn">2</span>The framework<span class="tag prop">Proposal</span></h2>
-  <p class="sub">Porsche's <a href="https://dealer.porsche.com/kw/kuwait/en-GB/news-and-events/2026-Event-detail-page5">announcement of the 2025 Importer of the Year for the Middle East region</a> states what the award looks at: customer satisfaction, service quality, sales innovation, team efficiency and the ability to build long-term loyalty. I used those five as the pillars. The KPIs under them are my proposal, not Porsche's list.</p>
-  <div class="panel" style="overflow:auto"><table id="kpi-table"></table></div>
-  <h3>Risk gates decide eligibility and never add points</h3>
-  <div class="panel" style="overflow:auto"><table>
-    <tr><th>Gate</th><th>Green</th><th>Amber (eligible, escalate)</th><th>Red (not eligible)</th></tr>
-    <tr><td>Financial and business stability</td><td>Current ratio ≥ 1.2 and net debt/EBITDA ≤ 3.0</td><td>Current ratio 1.0 to 1.2, or net debt/EBITDA 3.0 to 4.0</td><td>Current ratio &lt; 1.0, or net debt/EBITDA &gt; 4.0</td></tr>
-    <tr><td>Integrity and compliance</td><td>No open high-severity audit findings</td><td>1 to 2 open</td><td>3 or more open</td></tr>
-    <tr><td>Data quality</td><td>Reporting completeness ≥ 95%</td><td>90% to 95%</td><td>&lt; 90%</td></tr>
-  </table>
-  <p class="small" style="margin-bottom:0">The posting asks for partners to be evaluated on financial, integrity, data and business-stability risk, with material issues escalated. Gates keep that separate from performance, so a strong sales year cannot offset a compliance problem, and the reason for an exclusion is always stated.</p></div>
-</section>
-
-<section id="method">
-  <h2><span class="sn">3</span>The scoring method</h2>
-  <p class="sub">Every step is simple enough to explain to an importer's general manager in one minute, which is the test for a methodology that gets published.</p>
-  <div class="grid2">
-    <div class="panel"><ol class="tight">
-      <li><b>Clean first.</b> Data-quality rules run before scoring (section 6). Bad values are excluded and replaced with the importer's own mean of its other quarters, and each one is logged.</li>
-      <li><b>Attainment per KPI</b> = actual ÷ target where higher is better, target ÷ actual where lower is better, capped at 110% so one outlier KPI cannot carry a pillar.</li>
-      <li><b>Pillar score</b> = weighted mean of its KPI attainments × 100. 100 means every target was met.</li>
-      <li><b>Total</b> = pillar scores × pillar weights (30, 20, 20, 15 and 15%).</li>
-      <li><b>Eligibility:</b> any red gate removes the importer from the award ranking. The score is still shown.</li>
-    </ol></div>
-    <div class="panel"><h3>Choices I would put in front of the importers</h3>
-      <ul class="tight">
-        <li><b>Targets, not peer rank, inside the score.</b> An importer is measured against a fixed target, so one importer improving does not push another down.</li>
-        <li><b>A cap at 110%</b> rewards beating a target without letting one KPI dominate.</li>
-        <li><b>Weights are policy, not maths.</b> That is why section 5 tests how much they matter.</li>
-        <li><b>Four quarters averaged</b> to reduce the effect of one bad quarter. A rolling view is a better fit for in-year steering.</li>
-      </ul></div>
-  </div>
-</section>
-
-<section id="results">
-  <h2><span class="sn">4</span>The scorecard, live<span class="tag syn">Synthetic data</span></h2>
-  <p class="sub">Move the weights and the ranking recalculates in your browser. Click a row to see why an importer sits where it does and which pillars explain its gap to the leader. The dials at the top follow your selection.</p>
-  <div class="panel">
-    <div class="controls" id="weights"></div>
-    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
-      <label class="small" style="color:var(--ink2)"><input type="checkbox" id="gates" checked> Apply risk gates</label>
-      <button class="plain" id="reset" type="button">Reset to base weights</button>
-      <span class="small" id="wnote"></span>
+<!-- =============================== STRESS TEST =============================== -->
+<section class="view" id="v-stress" role="tabpanel" aria-label="Stress test" hidden>
+  <div class="wrap vhead">
+    <span class="kick syn">Stress test // Synthetic data</span>
+    <h2 class="big">How much do the <em>weights</em> matter?</h2>
+    <p class="prose">A ranking that only exists under one set of weights is not a finding. This draws thousands of random weight sets around the Normal weights, re-ranks the eligible importers every time and records where each one lands. <b>It runs in your browser, now.</b></p>
+    <div class="card" style="margin-top:30px">
+      <div class="mc-ctrl">
+        <button class="btn red" id="mc-run" type="button">[ Run 5,000 draws ]</button>
+        <label>Weight spread <span id="mc-spread-l" style="color:#fff"></span><input type="range" id="mc-spread" min="0" max="4" step="1" value="2"></label>
+        <div class="mc-prog" id="mc-prog">0 <span>/ 5,000 draws</span></div>
+      </div>
+      <div class="pbar"><i id="mc-bar"></i></div>
+      <div class="grid2">
+        <div><div id="chart-sens"></div><p class="small" style="margin:8px 0 0">Bar: 5th to 95th percentile of rank. Dot: median rank.</p></div>
+        <div><span class="lbl muted">Reading it</span><ul class="read" id="mc-read" style="margin-top:14px"></ul>
+          <span class="lbl muted" style="display:block;margin-top:22px">Drop one pillar at a time</span><div class="small" id="pillar-out" style="margin-top:12px;color:var(--ink2)"></div>
+          <p class="small" style="margin-top:18px">Reference run in Python (numpy, seed 20261115, same method): Importer 15 first in 4,999 of 5,000.</p></div>
+      </div>
     </div>
-    <div class="legend" id="pleg"></div>
-    <div style="overflow:auto"><table id="rank"></table></div>
-  </div>
-  <div class="panel" id="detail"></div>
-</section>
-
-<section id="sens">
-  <h2><span class="sn">5</span>How much do the weights matter?<span class="tag syn">Synthetic data</span></h2>
-  <p class="sub">I drew 5,000 random sets of pillar weights centred on the base weights (typically within about ±10 points on the 30% weight) and re-ranked the eligible importers each time. A ranking that only exists under one set of weights is not a finding.</p>
-  <div class="grid2">
-    <div class="panel"><div id="chart-sens"></div><p class="small" style="margin-bottom:0">Bar: 5th to 95th percentile of rank across 5,000 weight draws. Dot: median rank.</p></div>
-    <div class="panel"><h3>Reading it</h3><ul class="tight" id="sens-read"></ul>
-    <h3>Drop one pillar at a time</h3><div id="pillar-out" class="small" style="color:var(--ink2)"></div></div>
+    <div class="next"><a class="btn" href="#powerbi">Next // Power BI &#8594;</a></div>
   </div>
 </section>
 
-<section id="dq">
-  <h2><span class="sn">6</span>Data quality runs before scoring<span class="tag syn">Synthetic data</span></h2>
-  <p class="sub">Four rules run on every submission. In this prototype I injected four deliberate errors into the synthetic data to confirm the rules find them. That shows the rules work on those four patterns, nothing more: real submissions will contain errors I have not thought of.</p>
-  <div class="grid2">
-    <div class="panel"><table>
-      <tr><th>Rule</th><th>Test</th></tr>
-      <tr><td>R1 Completeness</td><td>No blank values for a KPI an importer must report</td></tr>
-      <tr><td>R2 Plausible range</td><td>Percentages in 0 to 100, scores in -100 to 100</td></tr>
-      <tr><td>R3 Impossible zero</td><td>A rate such as pre-owned sales or conversion that reads exactly 0</td></tr>
-      <tr><td>R4 Outlier vs own history</td><td>More than 4 pooled standard deviations from the importer's own median</td></tr>
-    </table></div>
-    <div class="panel"><div id="dq-log"></div></div>
-  </div>
-</section>
+<!-- =============================== POWER BI =============================== -->
+<section class="view" id="v-powerbi" role="tabpanel" aria-label="Power BI" hidden>
+  <div class="wrap vhead">
+    <span class="kick">Architecture // Power BI</span>
+    <h2 class="big">Built once. <em>Reconciled.</em></h2>
+    <p class="prose">The same star schema, built in Power BI Desktop from seven CSVs. Total Score and eligible rank for <b>all 16 importers</b> match the Python scores in <code>fact_scorecard.csv</code>.</p>
+    <div class="card" style="margin-top:30px"><div class="card-h"><span class="lbl muted">Schema // star</span></div><div id="chart-model"></div></div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card"><div class="card-h"><span class="lbl muted">Report page // Power BI Desktop</span><span class="kick syn" style="padding:6px 10px;font-size:9px">Synthetic</span></div>
+        <button class="shotbtn" type="button" id="shot-open" aria-label="Enlarge the Power BI screenshot"><img src="img/powerbi-report.png" loading="lazy" alt="Power BI report page: scorecard table, total score by importer coloured by risk gate, gate slicer, pillar heatmap"></button>
+        <p class="small" style="margin:12px 0 0">Importers 11 and 13 are red on the risk gates: a score, no rank. Click to enlarge.</p></div>
+      <div class="card"><div class="card-h"><span class="lbl muted">Measures // measures.dax</span><button class="btn sm" id="copy-dax" type="button">Copy</button></div>
+<pre class="dax" id="dax"><span class="k">KPI Attainment</span> =
+<span class="f">VAR</span> Actual = <span class="f">AVERAGE</span> ( fact_kpi_quarterly[value_used] )
+<span class="f">VAR</span> Target = <span class="f">SELECTEDVALUE</span> ( dim_kpi[target] )
+<span class="f">VAR</span> HigherBetter =
+    <span class="f">SELECTEDVALUE</span> ( dim_kpi[direction] ) = <span class="s">"higher is better"</span>
+<span class="f">RETURN</span>
+    <span class="f">MIN</span> ( 1.1,
+        <span class="f">IF</span> ( HigherBetter,
+            <span class="f">DIVIDE</span> ( Actual, Target ),
+            <span class="f">DIVIDE</span> ( Target, Actual ) ) )
 
-<section id="model">
-  <h2><span class="sn">7</span>Power BI model and migration plan</h2>
-  <p class="sub">The same star schema, built in Power BI Desktop from the seven CSVs. The DAX below was run there, and Total Score and eligible rank for all 16 importers match the Python scores in <code>fact_scorecard.csv</code>.</p>
-  <div class="panel"><div id="chart-model"></div></div>
-  <div class="panel"><h3>The report page in Power BI Desktop<span class="tag syn">Synthetic data</span></h3>
-    <img class="shot" src="img/powerbi-report.png" loading="lazy" alt="Power BI report page: scorecard table, total score by importer coloured by risk gate (amber, green, red), risk-gate slicer, and pillar heatmap">
-    <p class="small" style="margin-bottom:0">Importers 11 and 13 are red on the risk gates, so they show a score but no rank.</p></div>
-  <div class="grid2">
-    <div class="panel"><h3>Core measures (DAX)</h3>
-<pre>KPI Attainment =
-VAR Actual = AVERAGE ( fact_kpi_quarterly[value_used] )
-VAR Target = SELECTEDVALUE ( dim_kpi[target] )
-VAR HigherBetter =
-    SELECTEDVALUE ( dim_kpi[direction] ) = "higher is better"
-RETURN
-    MIN ( 1.1,
-        IF ( HigherBetter,
-            DIVIDE ( Actual, Target ),
-            DIVIDE ( Target, Actual ) ) )
-
-Pillar Score =
-SUMX (
-    VALUES ( dim_kpi[kpi_id] ),
+<span class="k">Pillar Score</span> =
+<span class="f">SUMX</span> (
+    <span class="f">VALUES</span> ( dim_kpi[kpi_id] ),
     [KPI Attainment]
-        * CALCULATE ( MAX ( dim_kpi[weight_in_pillar] ) )
+        * <span class="f">CALCULATE</span> ( <span class="f">MAX</span> ( dim_kpi[weight_in_pillar] ) )
 ) * 100
 
-Total Score =
-SUMX (
-    VALUES ( dim_pillar[pillar_id] ),
+<span class="k">Total Score</span> =
+<span class="f">SUMX</span> (
+    <span class="f">VALUES</span> ( dim_pillar[pillar_id] ),
     [Pillar Score]
-        * CALCULATE ( MAX ( dim_pillar[base_weight] ) )
+        * <span class="f">CALCULATE</span> ( <span class="f">MAX</span> ( dim_pillar[base_weight] ) )
 )
 
-Eligible =
-IF ( SELECTEDVALUE ( fact_risk_gates[gate_status] ) &lt;&gt; "RED", 1, 0 )</pre>
-      <p class="small" style="margin-bottom:0">Rank and gap-to-leader measures are in <a href="measures.dax">measures.dax</a>.</p></div>
-    <div class="panel"><h3>Migration plan I would run</h3>
-      <ol class="tight">
-        <li><b>Inventory and freeze definitions.</b> List every report and KPI in use today, who owns it and which source feeds it. One written definition per KPI, signed off before anything is rebuilt.</li>
-        <li><b>Build the model once.</b> Star schema, one measure layer, no logic in report pages.</li>
-        <li><b>Run old and new in parallel for one reporting cycle</b> and reconcile every difference to a cause, so users trust the new numbers.</li>
-        <li><b>Row-level security</b> so each importer sees only its own data and the peer ranking.</li>
-        <li><b>Monitoring:</b> data-quality log published with every refresh, refresh failures alerted, a named owner per table.</li>
-        <li><b>Retire the old reports</b> on a stated date, not gradually.</li>
-      </ol></div>
-  </div>
-</section>
+<span class="k">Eligible</span> =
+<span class="f">IF</span> ( <span class="f">SELECTEDVALUE</span> ( fact_risk_gates[gate_status] ) &lt;&gt; <span class="s">"RED"</span>, 1, 0 )
 
-<section id="map">
-  <h2><span class="sn">8</span>How this maps to the role</h2>
-  <div class="panel" style="overflow:auto"><table>
-    <tr><th>The posting asks for</th><th>What this project shows</th></tr>
-    <tr><td>Define KPI logic and reporting requirements</td><td>KPI dictionary with definition, unit, direction, target and weight for each KPI (section 2)</td></tr>
-    <tr><td>Lead the migration to the target Power BI set-up</td><td>Star schema and measure layer built and reconciled in Power BI Desktop, plus a six-step migration plan with a parallel run (section 7)</td></tr>
-    <tr><td>Own Importer of the Year: KPI framework, scoring methodology, transparent communication</td><td>Five pillars taken from the published criteria, a one-minute scoring method and a weight-sensitivity test (sections 2 to 5)</td></tr>
-    <tr><td>Evaluate partners on financial, integrity, data and stability risk</td><td>Three gates with thresholds, kept separate from the performance score (section 2)</td></tr>
-    <tr><td>Challenge assumptions; identify root causes</td><td>Gap-to-leader decomposition by pillar, and a stated test of whether the winner survives different weights (sections 4 and 5)</td></tr>
-    <tr><td>Monitor market, importer and retail-network performance</td><td>Regional delivery trend and context from public releases (section 1)</td></tr>
-  </table>
-  <p class="small" style="margin-bottom:0">Not covered here: the annual Importer Business Plan cycle, PME operational guidelines, and any real importer data. Those need access I do not have, and I would rather say so than imply otherwise.</p></div>
-</section>
+<span class="k">Rank (eligible)</span> =
+<span class="f">IF</span> (
+    [Eligible] = 1,
+    <span class="f">RANKX</span> ( <span class="f">FILTER</span> ( <span class="f">ALL</span> ( dim_importer ), [Eligible] = 1 ), [Total Score], , DESC )
+)
 
-<section id="limits">
-  <h2><span class="sn">9</span>Limits and build status</h2>
-  <div class="grid2">
-    <div class="callout syn" style="margin-top:0"><ul class="tight" style="margin-top:0">
-      <li><b>Importer data is synthetic.</b> Generated with a fixed random seed (20261115). Real importer KPIs are internal to the manufacturer, and I chose not to scrape or guess at partners' public data. Which importer ranks first here tells you nothing about any real importer.</li>
-      <li><b>The KPI list, targets, weights and gate thresholds are my proposals.</b> They mirror the five published criteria but are not Porsche's definitions.</li>
-      <li><b>The weight-sensitivity result depends on the synthetic spread.</b> The method transfers; the finding does not.</li>
-      <li><b>Derived delivery years are approximate</b> and marked as such.</li>
-    </ul></div>
-    <div class="panel" style="margin-top:0"><table class="status">
-      <tr><th></th><th>Piece</th><th>Status</th></tr>
-      <tr><td class="ok" aria-hidden="true">●</td><td>Python model: synthetic data, four data-quality rules, scoring, 5,000-draw sensitivity test</td><td>Built</td></tr>
-      <tr><td class="ok" aria-hidden="true">●</td><td>Power BI Desktop: star schema, six measures, report page, reconciled to Python for all 16 importers</td><td>Built</td></tr>
-      <tr><td class="ok" aria-hidden="true">●</td><td>This page: live weights, gates, gap-to-leader and the dials</td><td>Built</td></tr>
-      <tr><td class="no" aria-hidden="true">○</td><td>What-if weight sliders inside Power BI</td><td>Not built</td></tr>
-      <tr><td class="no" aria-hidden="true">○</td><td>Row-level security per importer</td><td>Designed, not built</td></tr>
-      <tr><td class="no" aria-hidden="true">○</td><td>Real importer data</td><td>Needs access I do not have</td></tr>
-    </table></div>
-  </div>
-  <h3>Downloads</h3>
-  <p class="small">Model tables (CSV): <a href="data/dim_importer.csv">dim_importer</a>, <a href="data/dim_kpi.csv">dim_kpi</a>, <a href="data/dim_pillar.csv">dim_pillar</a>, <a href="data/dim_quarter.csv">dim_quarter</a>, <a href="data/fact_kpi_quarterly.csv">fact_kpi_quarterly</a>, <a href="data/fact_risk_gates.csv">fact_risk_gates</a>, <a href="data/fact_scorecard.csv">fact_scorecard</a>, <a href="data/fact_weight_sensitivity.csv">fact_weight_sensitivity</a>, <a href="data/dq_log.csv">dq_log</a>.<br>
-  Code and measures: <a href="build_model.py">build_model.py</a>, <a href="measures.dax">measures.dax</a>, <a href="README.md">README</a>.</p>
-</section>
-
-<section id="why">
-  <h2>Why it's built around a 911</h2>
-  <div class="why-lead">
-    <div>
-      <p>I'm a car enthusiast, and Porsche has always been the benchmark for me. The cluster at the top borrows from the 911 because the car is the best example I know of what a scorecard should reward: steady, measured improvement on a layout everyone recognises, generation after generation.</p>
-      <p class="small" style="margin:0">Generation dates and firsts are from Porsche's <a href="https://newsroom.porsche.com/en/press-kits/911-s-t/60-years-of-the-Porsche-911.html">60 years of the 911</a> press kit.</p>
+<span class="k">Gap to Leader</span> =
+<span class="f">VAR</span> LeaderScore = <span class="f">MAXX</span> ( <span class="f">FILTER</span> ( <span class="f">ALL</span> ( dim_importer ), [Eligible] = 1 ), [Total Score] )
+<span class="f">RETURN</span> [Total Score] - LeaderScore</pre></div>
     </div>
-    <ul class="facts">
-      <li><b>15% to 23%.</b> The 911's share of Porsche sales in this region, 2020 to 2025 (section 1).</li>
-      <li><b>11 May 2017.</b> The one-millionth 911 left the Zuffenhausen line: a Carrera S in Irish Green. The green on this page is a nod to it. <a href="https://newsroom.porsche.com/en/products/porsche-one-millionth-911-milestone-13733.html">Source</a></li>
-    </ul>
+    <section class="blk">
+      <div class="grid2">
+        <div><span class="lbl">Migration plan</span><h2 class="big" style="font-size:clamp(26px,3vw,40px)">How I would <span class="r">move</span> it.</h2>
+          <ol class="mig">
+            <li><span><b>Inventory and freeze definitions.</b> Every report and KPI in use, its owner and source. One signed-off definition per KPI before anything is rebuilt.</span></li>
+            <li><span><b>Build the model once.</b> Star schema, one measure layer, no logic in report pages.</span></li>
+            <li><span><b>Run old and new in parallel</b> for one reporting cycle and reconcile every difference to a cause.</span></li>
+            <li><span><b>Row-level security</b> so each importer sees only its own data and the peer ranking.</span></li>
+            <li><span><b>Monitoring:</b> data-quality log with every refresh, failures alerted, a named owner per table.</span></li>
+            <li><span><b>Retire the old reports</b> on a stated date, not gradually.</span></li>
+          </ol></div>
+        <div><span class="lbl">Build status</span><h2 class="big" style="font-size:clamp(26px,3vw,40px)">What is <span class="r">real.</span></h2>
+          <ul class="status">
+            <li><span>Python model: synthetic data, four quality rules, scoring, 5,000-draw stress test</span><span class="s ok">&#10003; Built</span></li>
+            <li><span>Power BI Desktop: star schema, six measures, report page, reconciled for all 16 importers</span><span class="s ok">&#10003; Built</span></li>
+            <li><span>This site: cockpit, drive modes, live stress test, drill-down</span><span class="s ok">&#10003; Built</span></li>
+            <li><span>What-if weight sliders inside Power BI</span><span class="s pl">&#9675; Planned</span></li>
+            <li><span>Row-level security per importer</span><span class="s pl">&#9675; Designed</span></li>
+            <li><span>Real importer data</span><span class="s pl">&#9675; Needs access</span></li>
+          </ul>
+          <p class="small" style="margin-top:16px">Importer data is synthetic (seed 20261115). The KPI list, targets, weights and gate thresholds are my proposals, not Porsche's definitions. The stress-test finding depends on the synthetic spread; the method transfers, the finding does not.</p>
+          <p class="small">Downloads: <a href="data/dim_importer.csv">dim_importer</a>, <a href="data/dim_kpi.csv">dim_kpi</a>, <a href="data/dim_pillar.csv">dim_pillar</a>, <a href="data/dim_quarter.csv">dim_quarter</a>, <a href="data/fact_kpi_quarterly.csv">fact_kpi_quarterly</a>, <a href="data/fact_risk_gates.csv">fact_risk_gates</a>, <a href="data/fact_scorecard.csv">fact_scorecard</a>, <a href="measures.dax">measures.dax</a>, <a href="build_model.py">build_model.py</a>.</p></div>
+      </div>
+    </section>
+    <div class="next"><a class="btn" href="#garage">Next // Garage &#8594;</a></div>
   </div>
-  <ol class="lineage" aria-label="Eight generations of the 911">
-    <li><span class="gen">911</span><span class="yrs">Original, 1963 to 1973</span><p>Shown as the 901 at the 1963 IAA in Frankfurt, on sale from 1964.</p></li>
-    <li><span class="gen">G</span><span class="yrs">G-series, 1973 to 1989</span><p>The first turbocharged 911, in 1974.</p></li>
-    <li><span class="gen">964</span><span class="yrs">1989 to 1994</span><p>The first 911 with all-wheel drive, in the Carrera 4.</p></li>
-    <li><span class="gen">993</span><span class="yrs">1994 to 1998</span><p>The last 911 with air-cooled engines.</p></li>
-    <li><span class="gen">996</span><span class="yrs">1998 to 2005</span><p>The first water-cooled 911.</p></li>
-    <li><span class="gen">997</span><span class="yrs">2004 to 2012</span><p>Round headlights return, and the first dual-clutch gearbox in a 911.</p></li>
-    <li><span class="gen">991</span><span class="yrs">2011 to 2019</span><p>Aluminium-steel body, 80 kg lighter than its predecessor.</p></li>
-    <li class="now"><span class="gen">992</span><span class="yrs">from 2019</span><p>An eight-speed dual-clutch gearbox with room for an electric motor.</p></li>
-  </ol>
+</section>
+
+<!-- =============================== GARAGE =============================== -->
+<section class="view" id="v-garage" role="tabpanel" aria-label="Garage" hidden>
+  <div class="wrap vhead">
+    <span class="kick">The garage // Shot by me</span>
+    <h2 class="big">Why it's built around a <em>911.</em></h2>
+    <div class="garage">
+      <figure class="photo"><button type="button" data-lb="img/amaan-997-1200.jpg" aria-label="Enlarge photo"><picture><source type="image/webp" srcset="img/amaan-997-800.webp 800w, img/amaan-997-1200.webp 1200w" sizes="(max-width:860px) 100vw, 45vw"><img src="img/amaan-997-1200.jpg" alt="A white 997-generation Porsche 911 at night, rear three-quarter view, with black wheels and yellow brake calipers" loading="lazy"></picture></button><figcaption><b>&#9679;</b> 997-generation 911 // Shot by me</figcaption></figure>
+      <div>
+        <p class="prose" style="font-size:15.5px">I'm a car enthusiast, and Porsche has always been the benchmark for me. The cockpit borrows from the 911 because the car is the best example I know of what a scorecard should reward: <b>steady, measured improvement on a layout everyone recognises</b>, generation after generation.</p>
+        <div class="facts3" style="margin:22px 0">
+          <div class="fact"><div class="n">15% <span class="r">&#8594;</span> 23%</div><p>The 911's share of Porsche sales in this region, 2020 to 2025.</p></div>
+          <div class="fact"><div class="n">1,000,000</div><p>The millionth 911 left Zuffenhausen on 11 May 2017: a Carrera S in Irish Green. <a href="https://newsroom.porsche.com/en/products/porsche-one-millionth-911-milestone-13733.html" style="color:var(--ink2)">Source</a></p></div>
+        </div>
+        <figure class="photo"><button type="button" data-lb="img/amaan-997-side-1600.jpg" aria-label="Enlarge photo"><picture><source type="image/webp" srcset="img/amaan-997-side-1600.webp"><img src="img/amaan-997-side-1600.jpg" alt="The same 911 in side profile at night, with a Porsche side stripe" loading="lazy"></picture></button><figcaption><b>&#9679;</b> Same car, side profile // Shot by me</figcaption></figure>
+      </div>
+    </div>
+    <section class="blk">
+      <span class="lbl">Lineage // 1963 to now</span>
+      <h2 class="big">Eight generations. <span class="r">One silhouette.</span></h2>
+      <div class="gen-track" role="tablist" aria-label="911 generations" id="gen-track"></div>
+      <div class="card gen-card" id="gen-card"></div>
+      <p class="small" style="margin-top:14px">Generation dates and firsts from Porsche's <a href="https://newsroom.porsche.com/en/press-kits/911-s-t/60-years-of-the-Porsche-911.html">60 years of the 911</a> press kit.</p>
+    </section>
+    <div class="next"><a class="btn red" href="#cockpit">Back to the cockpit &#8594;</a></div>
+  </div>
 </section>
 </main>
 
-<footer><div class="wrap">
-  <p><b>Built by Amaan Khan</b>, MBA Business Analytics candidate at BITS Pilani Dubai Campus. <a href="https://github.com/amaanthekhan/porsche-importer-scorecard">Source on GitHub</a>.</p>
-  <p>An independent, non-commercial portfolio project. Not affiliated with, endorsed by or produced for Dr. Ing. h.c. F. Porsche AG or Porsche Middle East and Africa FZE. Porsche, 911 and Carrera are trademarks of Dr. Ing. h.c. F. Porsche AG, named here only to describe the subject. No Porsche logos are used.</p>
-  <p>Hero photograph by <a href="https://unsplash.com/photos/a-white-car-on-a-road-at-night-S8lqZpUaQ2A">Jaddy Liu on Unsplash</a>, used under the Unsplash License. Typeface: Archivo, SIL Open Font License.</p>
-</div></footer>
+<dialog class="lb" id="lb"><form method="dialog"><button class="btn sm" aria-label="Close">Close</button></form><img id="lb-img" alt=""></dialog>
 
 <script>
-const D = {"seed": 20261115, "draws": 5000, "cap": 1.1, "pillars": {"A": {"name": "Customer satisfaction", "weight": 0.3}, "B": {"name": "Service quality", "weight": 0.2}, "C": {"name": "Sales innovation", "weight": 0.2}, "D": {"name": "Team efficiency", "weight": 0.15}, "E": {"name": "Long-term loyalty", "weight": 0.15}}, "kpis": [{"kpi_id": "A1", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Sales satisfaction index", "unit": "pts", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Mean post-purchase survey score, 0-100, delivered vehicles in quarter"}, {"kpi_id": "A2", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Service satisfaction index", "unit": "pts", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Mean post-service survey score, 0-100, completed workshop orders in quarter"}, {"kpi_id": "A3", "pillar_id": "A", "pillar": "Customer satisfaction", "kpi_name": "Complaints resolved within 48h", "unit": "%", "direction": "higher is better", "target": 95, "weight_in_pillar": 0.2, "definition": "Complaints closed within 48h / complaints opened in quarter"}, {"kpi_id": "B1", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "First-time-fix rate", "unit": "%", "direction": "higher is better", "target": 92, "weight_in_pillar": 0.4, "definition": "Repair orders closed without a repeat visit within 30 days / orders closed"}, {"kpi_id": "B2", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "Service retention (cars 4+ yrs)", "unit": "%", "direction": "higher is better", "target": 55, "weight_in_pillar": 0.4, "definition": "Cars aged 4+ years serviced at an authorised workshop / cars in operation of that age"}, {"kpi_id": "B3", "pillar_id": "B", "pillar": "Service quality", "kpi_name": "Warranty claim rejection rate", "unit": "%", "direction": "lower is better", "target": 3, "weight_in_pillar": 0.2, "definition": "Warranty claims rejected by the manufacturer / claims submitted"}, {"kpi_id": "C1", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Individualisation share of orders", "unit": "%", "direction": "higher is better", "target": 35, "weight_in_pillar": 0.3, "definition": "Orders with Exclusive Manufaktur / factory-individualised content / total orders"}, {"kpi_id": "C2", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Pre-owned sales per 100 new", "unit": "units", "direction": "higher is better", "target": 25, "weight_in_pillar": 0.3, "definition": "Approved pre-owned retail sales per 100 new-vehicle deliveries"}, {"kpi_id": "C3", "pillar_id": "C", "pillar": "Sales innovation", "kpi_name": "Lead-to-order conversion", "unit": "%", "direction": "higher is better", "target": 12, "weight_in_pillar": 0.4, "definition": "Orders / qualified leads in the period"}, {"kpi_id": "D1", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Leads answered within 1 hour", "unit": "%", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.4, "definition": "Qualified leads with a first human response within 1h / qualified leads"}, {"kpi_id": "D2", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Certified staff share", "unit": "%", "direction": "higher is better", "target": 95, "weight_in_pillar": 0.3, "definition": "Customer-facing staff holding current certification / customer-facing staff"}, {"kpi_id": "D3", "pillar_id": "D", "pillar": "Team efficiency", "kpi_name": "Delivery-date adherence", "unit": "%", "direction": "higher is better", "target": 90, "weight_in_pillar": 0.3, "definition": "Vehicles handed over on or before the promised date / vehicles delivered"}, {"kpi_id": "E1", "pillar_id": "E", "pillar": "Long-term loyalty", "kpi_name": "Repeat-customer share of new sales", "unit": "%", "direction": "higher is better", "target": 45, "weight_in_pillar": 0.5, "definition": "New-vehicle buyers who already own or owned a Porsche / buyers"}, {"kpi_id": "E2", "pillar_id": "E", "pillar": "Long-term loyalty", "kpi_name": "Net Promoter Score", "unit": "pts", "direction": "higher is better", "target": 60, "weight_in_pillar": 0.5, "definition": "% promoters minus % detractors, rolling four quarters"}], "importers": [{"id": "IMP15", "label": "Importer 15", "tier": "Large", "centres": 5, "total": 103.55, "pillars": {"A": 102.9, "B": 99.4, "C": 110.0, "D": 101.3, "E": 104.0}, "gate": "AMBER", "reasons": "data: reporting completeness < 95%", "eligible": true, "rank_score_only": 1, "rank_eligible": 1, "gap_to_leader": {"A": 0.0, "B": 0.0, "C": 0.0, "D": 0.0, "E": 0.0}}, {"id": "IMP06", "label": "Importer 06", "tier": "Mid", "centres": 3, "total": 99.0, "pillars": {"A": 98.8, "B": 103.4, "C": 92.6, "D": 95.9, "E": 105.2}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 2, "rank_eligible": 2, "gap_to_leader": {"A": -1.24, "B": 0.79, "C": -3.47, "D": -0.8, "E": 0.18}}, {"id": "IMP11", "label": "Importer 11", "tier": "Mid", "centres": 2, "total": 97.52, "pillars": {"A": 97.6, "B": 105.2, "C": 96.8, "D": 89.5, "E": 96.2}, "gate": "RED", "reasons": "integrity: >=3 open high-severity findings; financial: liquidity/leverage watch", "eligible": false, "rank_score_only": 3, "rank_eligible": null, "gap_to_leader": {"A": -1.59, "B": 1.16, "C": -2.64, "D": -1.77, "E": -1.18}}, {"id": "IMP02", "label": "Importer 02", "tier": "Mid", "centres": 3, "total": 97.28, "pillars": {"A": 96.6, "B": 90.0, "C": 97.2, "D": 95.8, "E": 110.0}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 4, "rank_eligible": 3, "gap_to_leader": {"A": -1.88, "B": -1.88, "C": -2.57, "D": -0.83, "E": 0.89}}, {"id": "IMP14", "label": "Importer 14", "tier": "Mid", "centres": 2, "total": 94.66, "pillars": {"A": 93.7, "B": 82.8, "C": 106.9, "D": 94.5, "E": 96.3}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 5, "rank_eligible": 4, "gap_to_leader": {"A": -2.76, "B": -3.33, "C": -0.61, "D": -1.02, "E": -1.17}}, {"id": "IMP10", "label": "Importer 10", "tier": "Mid", "centres": 2, "total": 91.69, "pillars": {"A": 97.3, "B": 103.1, "C": 76.0, "D": 95.4, "E": 82.5}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 6, "rank_eligible": 5, "gap_to_leader": {"A": -1.67, "B": 0.74, "C": -6.81, "D": -0.89, "E": -3.23}}, {"id": "IMP12", "label": "Importer 12", "tier": "Small", "centres": 1, "total": 91.49, "pillars": {"A": 94.3, "B": 87.2, "C": 90.9, "D": 99.9, "E": 84.0}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 7, "rank_eligible": 6, "gap_to_leader": {"A": -2.58, "B": -2.45, "C": -3.82, "D": -0.21, "E": -3.0}}, {"id": "IMP04", "label": "Importer 04", "tier": "Mid", "centres": 3, "total": 91.44, "pillars": {"A": 91.6, "B": 86.9, "C": 89.2, "D": 90.6, "E": 100.9}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 8, "rank_eligible": 7, "gap_to_leader": {"A": -3.38, "B": -2.5, "C": -4.15, "D": -1.6, "E": -0.47}}, {"id": "IMP09", "label": "Importer 09", "tier": "Small", "centres": 1, "total": 89.81, "pillars": {"A": 92.4, "B": 96.2, "C": 88.6, "D": 92.5, "E": 75.1}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 9, "rank_eligible": 8, "gap_to_leader": {"A": -3.15, "B": -0.65, "C": -4.29, "D": -1.32, "E": -4.34}}, {"id": "IMP16", "label": "Importer 16", "tier": "Mid", "centres": 2, "total": 87.03, "pillars": {"A": 86.7, "B": 87.8, "C": 85.2, "D": 90.1, "E": 85.9}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 10, "rank_eligible": 9, "gap_to_leader": {"A": -4.84, "B": -2.32, "C": -4.95, "D": -1.68, "E": -2.72}}, {"id": "IMP05", "label": "Importer 05", "tier": "Mid", "centres": 3, "total": 86.54, "pillars": {"A": 98.3, "B": 79.7, "C": 70.6, "D": 93.1, "E": 86.8}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch", "eligible": true, "rank_score_only": 11, "rank_eligible": 10, "gap_to_leader": {"A": -1.36, "B": -3.95, "C": -7.89, "D": -1.22, "E": -2.59}}, {"id": "IMP08", "label": "Importer 08", "tier": "Mid", "centres": 3, "total": 84.94, "pillars": {"A": 87.6, "B": 78.1, "C": 86.4, "D": 96.1, "E": 75.7}, "gate": "GREEN", "reasons": "", "eligible": true, "rank_score_only": 12, "rank_eligible": 11, "gap_to_leader": {"A": -4.58, "B": -4.27, "C": -4.72, "D": -0.79, "E": -4.25}}, {"id": "IMP13", "label": "Importer 13", "tier": "Small", "centres": 2, "total": 79.57, "pillars": {"A": 92.2, "B": 86.6, "C": 54.6, "D": 83.7, "E": 74.1}, "gate": "RED", "reasons": "financial: liquidity/leverage breach; data: reporting completeness < 95%", "eligible": false, "rank_score_only": 13, "rank_eligible": null, "gap_to_leader": {"A": -3.2, "B": -2.56, "C": -11.09, "D": -2.63, "E": -4.5}}, {"id": "IMP01", "label": "Importer 01", "tier": "Mid", "centres": 2, "total": 78.04, "pillars": {"A": 92.4, "B": 82.4, "C": 41.5, "D": 91.6, "E": 78.8}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 14, "rank_eligible": 12, "gap_to_leader": {"A": -3.15, "B": -3.41, "C": -13.71, "D": -1.46, "E": -3.79}}, {"id": "IMP03", "label": "Importer 03", "tier": "Mid", "centres": 3, "total": 77.15, "pillars": {"A": 91.5, "B": 85.0, "C": 49.9, "D": 86.9, "E": 64.6}, "gate": "AMBER", "reasons": "data: reporting completeness < 95%", "eligible": true, "rank_score_only": 15, "rank_eligible": 13, "gap_to_leader": {"A": -3.42, "B": -2.88, "C": -12.02, "D": -2.15, "E": -5.92}}, {"id": "IMP07", "label": "Importer 07", "tier": "Mid", "centres": 2, "total": 71.19, "pillars": {"A": 81.8, "B": 61.3, "C": 63.8, "D": 88.0, "E": 56.3}, "gate": "AMBER", "reasons": "integrity: open high-severity finding(s)", "eligible": true, "rank_score_only": 16, "rank_eligible": 14, "gap_to_leader": {"A": -6.32, "B": -7.63, "C": -9.24, "D": -2.0, "E": -7.17}}], "leader": "Importer 15", "sensitivity": [{"id": "IMP01", "label": "Importer 01", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 12.0, "rank_p05": 12.0, "rank_p95": 13.0}, {"id": "IMP02", "label": "Importer 02", "eligible": true, "p_rank1": 0.0, "p_top3": 0.9368, "median_rank": 3.0, "rank_p05": 2.0, "rank_p95": 4.0}, {"id": "IMP03", "label": "Importer 03", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 13.0, "rank_p05": 12.0, "rank_p95": 13.0}, {"id": "IMP04", "label": "Importer 04", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 6.0, "rank_p05": 5.0, "rank_p95": 8.0}, {"id": "IMP05", "label": "Importer 05", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 10.0, "rank_p05": 8.0, "rank_p95": 11.0}, {"id": "IMP06", "label": "Importer 06", "eligible": true, "p_rank1": 0.0002, "p_top3": 0.967, "median_rank": 2.0, "rank_p05": 2.0, "rank_p95": 3.0}, {"id": "IMP07", "label": "Importer 07", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 14.0, "rank_p05": 14.0, "rank_p95": 14.0}, {"id": "IMP08", "label": "Importer 08", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 11.0, "rank_p05": 10.0, "rank_p95": 11.0}, {"id": "IMP09", "label": "Importer 09", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 8.0, "rank_p05": 6.0, "rank_p95": 9.0}, {"id": "IMP10", "label": "Importer 10", "eligible": true, "p_rank1": 0.0, "p_top3": 0.03, "median_rank": 6.0, "rank_p05": 4.0, "rank_p95": 8.0}, {"id": "IMP11", "label": "Importer 11", "eligible": false, "p_rank1": null, "p_top3": null, "median_rank": null, "rank_p05": null, "rank_p95": null}, {"id": "IMP12", "label": "Importer 12", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 6.0, "rank_p05": 5.0, "rank_p95": 7.0}, {"id": "IMP13", "label": "Importer 13", "eligible": false, "p_rank1": null, "p_top3": null, "median_rank": null, "rank_p05": null, "rank_p95": null}, {"id": "IMP14", "label": "Importer 14", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0662, "median_rank": 4.0, "rank_p05": 3.0, "rank_p95": 6.0}, {"id": "IMP15", "label": "Importer 15", "eligible": true, "p_rank1": 0.9998, "p_top3": 1.0, "median_rank": 1.0, "rank_p05": 1.0, "rank_p95": 1.0}, {"id": "IMP16", "label": "Importer 16", "eligible": true, "p_rank1": 0.0, "p_top3": 0.0, "median_rank": 9.0, "rank_p05": 9.0, "rank_p95": 10.0}], "pillar_out": [{"dropped_pillar": "A", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "B", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "C", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "D", "leader": "Importer 15", "same_leader_as_base": true}, {"dropped_pillar": "E", "leader": "Importer 15", "same_leader_as_base": true}], "dq": {"injected": ["IMP07 FY-Q3 B1 left blank", "IMP12 FY-Q2 A3 entered as 982 instead of a percentage", "IMP03 FY-Q4 C2 reported as 0", "IMP09 FY-Q1 D1 entered as 31 (typo)"], "caught": [{"importer_id": "IMP03", "quarter": "FY-Q4", "kpi_id": "C2", "rule": "R3 zero on a rate that cannot be zero", "action": "excluded; imputed with importer's mean of other quarters", "value": 0.0}, {"importer_id": "IMP07", "quarter": "FY-Q3", "kpi_id": "B1", "rule": "R1 completeness", "action": "excluded; imputed with importer's mean of other quarters", "value": NaN}, {"importer_id": "IMP12", "quarter": "FY-Q2", "kpi_id": "A3", "rule": "R2 plausible range", "action": "excluded; imputed with importer's mean of other quarters", "value": 982.0}, {"importer_id": "IMP09", "quarter": "FY-Q1", "kpi_id": "D1", "rule": "R4 outlier vs own history (>4 pooled SD)", "action": "excluded pending confirmation; imputed with importer's mean of other quarters", "value": 31.0}]}, "gates": [{"importer_id": "IMP01", "current_ratio": 1.76, "net_debt_to_ebitda": 2.05, "open_high_findings": 1, "reporting_completeness_pct": 95.9, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP02", "current_ratio": 1.74, "net_debt_to_ebitda": 3.25, "open_high_findings": 1, "reporting_completeness_pct": 97.3, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP03", "current_ratio": 1.64, "net_debt_to_ebitda": 1.8, "open_high_findings": 0, "reporting_completeness_pct": 94.7, "gate_status": "AMBER", "gate_reasons": "data: reporting completeness < 95%"}, {"importer_id": "IMP04", "current_ratio": 1.86, "net_debt_to_ebitda": 3.03, "open_high_findings": 1, "reporting_completeness_pct": 96.9, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP05", "current_ratio": 1.33, "net_debt_to_ebitda": 3.4, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP06", "current_ratio": 2.06, "net_debt_to_ebitda": 1.24, "open_high_findings": 0, "reporting_completeness_pct": 97.4, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP07", "current_ratio": 1.69, "net_debt_to_ebitda": 2.5, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP08", "current_ratio": 1.32, "net_debt_to_ebitda": 0.65, "open_high_findings": 0, "reporting_completeness_pct": 98.4, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP09", "current_ratio": 1.51, "net_debt_to_ebitda": 3.52, "open_high_findings": 2, "reporting_completeness_pct": 97.5, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s); financial: liquidity/leverage watch"}, {"importer_id": "IMP10", "current_ratio": 1.24, "net_debt_to_ebitda": 0.69, "open_high_findings": 0, "reporting_completeness_pct": 97.3, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP11", "current_ratio": 1.36, "net_debt_to_ebitda": 3.36, "open_high_findings": 4, "reporting_completeness_pct": 95.9, "gate_status": "RED", "gate_reasons": "integrity: >=3 open high-severity findings; financial: liquidity/leverage watch"}, {"importer_id": "IMP12", "current_ratio": 1.84, "net_debt_to_ebitda": 2.94, "open_high_findings": 0, "reporting_completeness_pct": 98.8, "gate_status": "GREEN", "gate_reasons": ""}, {"importer_id": "IMP13", "current_ratio": 0.94, "net_debt_to_ebitda": 3.57, "open_high_findings": 0, "reporting_completeness_pct": 90.7, "gate_status": "RED", "gate_reasons": "financial: liquidity/leverage breach; data: reporting completeness < 95%"}, {"importer_id": "IMP14", "current_ratio": 1.47, "net_debt_to_ebitda": 1.88, "open_high_findings": 1, "reporting_completeness_pct": 100.0, "gate_status": "AMBER", "gate_reasons": "integrity: open high-severity finding(s)"}, {"importer_id": "IMP15", "current_ratio": 1.83, "net_debt_to_ebitda": 0.59, "open_high_findings": 0, "reporting_completeness_pct": 92.3, "gate_status": "AMBER", "gate_reasons": "data: reporting completeness < 95%"}, {"importer_id": "IMP16", "current_ratio": 1.76, "net_debt_to_ebitda": 1.75, "open_high_findings": 0, "reporting_completeness_pct": 100.0, "gate_status": "GREEN", "gate_reasons": ""}], "gate_detail": {"IMP01": {"financial": "GREEN", "integrity": "AMBER", "data": "GREEN"}, "IMP02": {"financial": "AMBER", "integrity": "AMBER", "data": "GREEN"}, "IMP03": {"financial": "GREEN", "integrity": "GREEN", "data": "AMBER"}, "IMP04": {"financial": "AMBER", "integrity": "AMBER", "data": "GREEN"}, "IMP05": {"financial": "AMBER", "integrity": "AMBER", "data": "GREEN"}, "IMP06": {"financial": "GREEN", "integrity": "GREEN", "data": "GREEN"}, "IMP07": {"financial": "GREEN", "integrity": "AMBER", "data": "GREEN"}, "IMP08": {"financial": "GREEN", "integrity": "GREEN", "data": "GREEN"}, "IMP09": {"financial": "AMBER", "integrity": "AMBER", "data": "GREEN"}, "IMP10": {"financial": "GREEN", "integrity": "GREEN", "data": "GREEN"}, "IMP11": {"financial": "AMBER", "integrity": "RED", "data": "GREEN"}, "IMP12": {"financial": "GREEN", "integrity": "GREEN", "data": "GREEN"}, "IMP13": {"financial": "RED", "integrity": "GREEN", "data": "AMBER"}, "IMP14": {"financial": "GREEN", "integrity": "AMBER", "data": "GREEN"}, "IMP15": {"financial": "GREEN", "integrity": "GREEN", "data": "AMBER"}, "IMP16": {"financial": "GREEN", "integrity": "GREEN", "data": "GREEN"}}};
-const PCH = {A:'#338ced',B:'#e76624',C:'#00a888',D:'#9887ef',E:'#e24d8b'};
-const $ = s => document.querySelector(s);
-const fmt = (x,d=1)=>Number(x).toFixed(d);
-const ord = n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
-const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const sw = p=>`<span class="sw" style="background:${PCH[p]}"></span>`;
-const byScore = [...D.importers].sort((a,b)=>b.total-a.total);
-const nElig = D.importers.filter(i=>i.eligible).length;
+const D = {"seed":20261115,"draws":5000,"cap":1.1,"pillars":{"A":{"name":"Customer satisfaction","weight":0.3},"B":{"name":"Service quality","weight":0.2},"C":{"name":"Sales innovation","weight":0.2},"D":{"name":"Team efficiency","weight":0.15},"E":{"name":"Long-term loyalty","weight":0.15}},"kpis":[{"kpi_id":"A1","pillar_id":"A","pillar":"Customer satisfaction","kpi_name":"Sales satisfaction index","unit":"pts","direction":"higher is better","target":90,"weight_in_pillar":0.4,"definition":"Mean post-purchase survey score, 0-100, delivered vehicles in quarter"},{"kpi_id":"A2","pillar_id":"A","pillar":"Customer satisfaction","kpi_name":"Service satisfaction index","unit":"pts","direction":"higher is better","target":90,"weight_in_pillar":0.4,"definition":"Mean post-service survey score, 0-100, completed workshop orders in quarter"},{"kpi_id":"A3","pillar_id":"A","pillar":"Customer satisfaction","kpi_name":"Complaints resolved within 48h","unit":"%","direction":"higher is better","target":95,"weight_in_pillar":0.2,"definition":"Complaints closed within 48h / complaints opened in quarter"},{"kpi_id":"B1","pillar_id":"B","pillar":"Service quality","kpi_name":"First-time-fix rate","unit":"%","direction":"higher is better","target":92,"weight_in_pillar":0.4,"definition":"Repair orders closed without a repeat visit within 30 days / orders closed"},{"kpi_id":"B2","pillar_id":"B","pillar":"Service quality","kpi_name":"Service retention (cars 4+ yrs)","unit":"%","direction":"higher is better","target":55,"weight_in_pillar":0.4,"definition":"Cars aged 4+ years serviced at an authorised workshop / cars in operation of that age"},{"kpi_id":"B3","pillar_id":"B","pillar":"Service quality","kpi_name":"Warranty claim rejection rate","unit":"%","direction":"lower is better","target":3,"weight_in_pillar":0.2,"definition":"Warranty claims rejected by the manufacturer / claims submitted"},{"kpi_id":"C1","pillar_id":"C","pillar":"Sales innovation","kpi_name":"Individualisation share of orders","unit":"%","direction":"higher is better","target":35,"weight_in_pillar":0.3,"definition":"Orders with Exclusive Manufaktur / factory-individualised content / total orders"},{"kpi_id":"C2","pillar_id":"C","pillar":"Sales innovation","kpi_name":"Pre-owned sales per 100 new","unit":"units","direction":"higher is better","target":25,"weight_in_pillar":0.3,"definition":"Approved pre-owned retail sales per 100 new-vehicle deliveries"},{"kpi_id":"C3","pillar_id":"C","pillar":"Sales innovation","kpi_name":"Lead-to-order conversion","unit":"%","direction":"higher is better","target":12,"weight_in_pillar":0.4,"definition":"Orders / qualified leads in the period"},{"kpi_id":"D1","pillar_id":"D","pillar":"Team efficiency","kpi_name":"Leads answered within 1 hour","unit":"%","direction":"higher is better","target":90,"weight_in_pillar":0.4,"definition":"Qualified leads with a first human response within 1h / qualified leads"},{"kpi_id":"D2","pillar_id":"D","pillar":"Team efficiency","kpi_name":"Certified staff share","unit":"%","direction":"higher is better","target":95,"weight_in_pillar":0.3,"definition":"Customer-facing staff holding current certification / customer-facing staff"},{"kpi_id":"D3","pillar_id":"D","pillar":"Team efficiency","kpi_name":"Delivery-date adherence","unit":"%","direction":"higher is better","target":90,"weight_in_pillar":0.3,"definition":"Vehicles handed over on or before the promised date / vehicles delivered"},{"kpi_id":"E1","pillar_id":"E","pillar":"Long-term loyalty","kpi_name":"Repeat-customer share of new sales","unit":"%","direction":"higher is better","target":45,"weight_in_pillar":0.5,"definition":"New-vehicle buyers who already own or owned a Porsche / buyers"},{"kpi_id":"E2","pillar_id":"E","pillar":"Long-term loyalty","kpi_name":"Net Promoter Score","unit":"pts","direction":"higher is better","target":60,"weight_in_pillar":0.5,"definition":"% promoters minus % detractors, rolling four quarters"}],"importers":[{"id":"IMP15","label":"Importer 15","tier":"Large","centres":5,"total":103.55,"pillars":{"A":102.9,"B":99.4,"C":110.0,"D":101.3,"E":104.0},"gate":"AMBER","reasons":"data: reporting completeness < 95%","eligible":true,"rank_score_only":1,"rank_eligible":1,"gap_to_leader":{"A":0.0,"B":0.0,"C":0.0,"D":0.0,"E":0.0},"pf":{"A":102.87187134502925,"B":99.42434458627616,"C":110.00000000000001,"D":101.28935672514618,"E":104.04930555555556}},{"id":"IMP06","label":"Importer 06","tier":"Mid","centres":3,"total":99.0,"pillars":{"A":98.8,"B":103.4,"C":92.6,"D":95.9,"E":105.2},"gate":"GREEN","reasons":"","eligible":true,"rank_score_only":2,"rank_eligible":2,"gap_to_leader":{"A":-1.24,"B":0.79,"C":-3.47,"D":-0.8,"E":0.18},"pf":{"A":98.75023391812866,"B":103.35009881422926,"C":92.6312380952381,"D":95.93983918128654,"E":105.24305555555556}},{"id":"IMP11","label":"Importer 11","tier":"Mid","centres":2,"total":97.52,"pillars":{"A":97.6,"B":105.2,"C":96.8,"D":89.5,"E":96.2},"gate":"RED","reasons":"integrity: >=3 open high-severity findings; financial: liquidity/leverage watch","eligible":false,"rank_score_only":3,"rank_eligible":null,"gap_to_leader":{"A":-1.59,"B":1.16,"C":-2.64,"D":-1.77,"E":-1.18},"pf":{"A":97.57461988304095,"B":105.2001976284585,"C":96.80080952380952,"D":89.46985380116959,"E":96.1673611111111}},{"id":"IMP02","label":"Importer 02","tier":"Mid","centres":3,"total":97.28,"pillars":{"A":96.6,"B":90.0,"C":97.2,"D":95.8,"E":110.0},"gate":"AMBER","reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch","eligible":true,"rank_score_only":4,"rank_eligible":3,"gap_to_leader":{"A":-1.88,"B":-1.88,"C":-2.57,"D":-0.83,"E":0.89},"pf":{"A":96.59631578947368,"B":90.00427280402165,"C":97.17104761904761,"D":95.76444444444444,"E":110.00000000000001}},{"id":"IMP14","label":"Importer 14","tier":"Mid","centres":2,"total":94.66,"pillars":{"A":93.7,"B":82.8,"C":106.9,"D":94.5,"E":96.3},"gate":"AMBER","reasons":"integrity: open high-severity finding(s)","eligible":true,"rank_score_only":5,"rank_eligible":4,"gap_to_leader":{"A":-2.76,"B":-3.33,"C":-0.61,"D":-1.02,"E":-1.17},"pf":{"A":93.67929824561404,"B":82.7706324110672,"C":106.93666666666665,"D":94.48900584795321,"E":96.25763888888889}},{"id":"IMP10","label":"Importer 10","tier":"Mid","centres":2,"total":91.69,"pillars":{"A":97.3,"B":103.1,"C":76.0,"D":95.4,"E":82.5},"gate":"GREEN","reasons":"","eligible":true,"rank_score_only":6,"rank_eligible":5,"gap_to_leader":{"A":-1.67,"B":0.74,"C":-6.81,"D":-0.89,"E":-3.23},"pf":{"A":97.29964912280703,"B":103.11010907973576,"C":75.97052380952381,"D":95.36700292397661,"E":82.52986111111112}},{"id":"IMP12","label":"Importer 12","tier":"Small","centres":1,"total":91.49,"pillars":{"A":94.3,"B":87.2,"C":90.9,"D":99.9,"E":84.0},"gate":"GREEN","reasons":"","eligible":true,"rank_score_only":7,"rank_eligible":6,"gap_to_leader":{"A":-2.58,"B":-2.45,"C":-3.82,"D":-0.21,"E":-3.0},"pf":{"A":94.28257309941522,"B":87.17171173242329,"C":90.90823809523809,"D":99.87818713450292,"E":84.03333333333333}},{"id":"IMP04","label":"Importer 04","tier":"Mid","centres":3,"total":91.44,"pillars":{"A":91.6,"B":86.9,"C":89.2,"D":90.6,"E":100.9},"gate":"AMBER","reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch","eligible":true,"rank_score_only":8,"rank_eligible":7,"gap_to_leader":{"A":-3.38,"B":-2.5,"C":-4.15,"D":-1.6,"E":-0.47},"pf":{"A":91.58941520467836,"B":86.93201819189427,"C":89.23533333333333,"D":90.60292397660818,"E":100.93749999999999}},{"id":"IMP09","label":"Importer 09","tier":"Small","centres":1,"total":89.81,"pillars":{"A":92.4,"B":96.2,"C":88.6,"D":92.5,"E":75.1},"gate":"AMBER","reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch","eligible":true,"rank_score_only":9,"rank_eligible":8,"gap_to_leader":{"A":-3.15,"B":-0.65,"C":-4.29,"D":-1.32,"E":-4.34},"pf":{"A":92.38345029239767,"B":96.18085417468258,"C":88.57447619047619,"D":92.50846491228071,"E":75.14791666666667}},{"id":"IMP16","label":"Importer 16","tier":"Mid","centres":2,"total":87.03,"pillars":{"A":86.7,"B":87.8,"C":85.2,"D":90.1,"E":85.9},"gate":"GREEN","reasons":"","eligible":true,"rank_score_only":10,"rank_eligible":9,"gap_to_leader":{"A":-4.84,"B":-2.32,"C":-4.95,"D":-1.68,"E":-2.72},"pf":{"A":86.72795321637427,"B":87.8296532149629,"C":85.2387142857143,"D":90.07402046783626,"E":85.93402777777777}},{"id":"IMP05","label":"Importer 05","tier":"Mid","centres":3,"total":86.54,"pillars":{"A":98.3,"B":79.7,"C":70.6,"D":93.1,"E":86.8},"gate":"AMBER","reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch","eligible":true,"rank_score_only":11,"rank_eligible":10,"gap_to_leader":{"A":-1.36,"B":-3.95,"C":-7.89,"D":-1.22,"E":-2.59},"pf":{"A":98.33415204678363,"B":79.67922818478681,"C":70.57214285714285,"D":93.14067251461988,"E":86.77708333333334}},{"id":"IMP08","label":"Importer 08","tier":"Mid","centres":3,"total":84.94,"pillars":{"A":87.6,"B":78.1,"C":86.4,"D":96.1,"E":75.7},"gate":"GREEN","reasons":"","eligible":true,"rank_score_only":12,"rank_eligible":11,"gap_to_leader":{"A":-4.58,"B":-4.27,"C":-4.72,"D":-0.79,"E":-4.25},"pf":{"A":87.61169590643276,"B":78.05440543606362,"C":86.37542857142859,"D":96.05119883040936,"E":75.7236111111111}},{"id":"IMP13","label":"Importer 13","tier":"Small","centres":2,"total":79.57,"pillars":{"A":92.2,"B":86.6,"C":54.6,"D":83.7,"E":74.1},"gate":"RED","reasons":"financial: liquidity/leverage breach; data: reporting completeness < 95%","eligible":false,"rank_score_only":13,"rank_eligible":null,"gap_to_leader":{"A":-3.2,"B":-2.56,"C":-11.09,"D":-2.63,"E":-4.5},"pf":{"A":92.21076023391814,"B":86.63632946426394,"C":54.55442857142857,"D":83.73002923976608,"E":74.05069444444446}},{"id":"IMP01","label":"Importer 01","tier":"Mid","centres":2,"total":78.04,"pillars":{"A":92.4,"B":82.4,"C":41.5,"D":91.6,"E":78.8},"gate":"AMBER","reasons":"integrity: open high-severity finding(s)","eligible":true,"rank_score_only":14,"rank_eligible":12,"gap_to_leader":{"A":-3.15,"B":-3.41,"C":-13.71,"D":-1.46,"E":-3.79},"pf":{"A":92.38508771929826,"B":82.37339793446387,"C":41.47109523809524,"D":91.58285087719298,"E":78.8152777777778}},{"id":"IMP03","label":"Importer 03","tier":"Mid","centres":3,"total":77.15,"pillars":{"A":91.5,"B":85.0,"C":49.9,"D":86.9,"E":64.6},"gate":"AMBER","reasons":"data: reporting completeness < 95%","eligible":true,"rank_score_only":15,"rank_eligible":13,"gap_to_leader":{"A":-3.42,"B":-2.88,"C":-12.02,"D":-2.15,"E":-5.92},"pf":{"A":91.47508771929824,"B":85.04001230516819,"C":49.88533333333333,"D":86.92714912280701,"E":64.575}},{"id":"IMP07","label":"Importer 07","tier":"Mid","centres":2,"total":71.19,"pillars":{"A":81.8,"B":61.3,"C":63.8,"D":88.0,"E":56.3},"gate":"AMBER","reasons":"integrity: open high-severity finding(s)","eligible":true,"rank_score_only":16,"rank_eligible":14,"gap_to_leader":{"A":-6.32,"B":-7.63,"C":-9.24,"D":-2.0,"E":-7.17},"pf":{"A":81.81005847953217,"B":61.25132960878204,"C":63.81476190476191,"D":87.9758187134503,"E":56.27638888888888}}],"leader":"Importer 15","sensitivity":[{"id":"IMP01","label":"Importer 01","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":12.0,"rank_p05":12.0,"rank_p95":13.0},{"id":"IMP02","label":"Importer 02","eligible":true,"p_rank1":0.0,"p_top3":0.9368,"median_rank":3.0,"rank_p05":2.0,"rank_p95":4.0},{"id":"IMP03","label":"Importer 03","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":13.0,"rank_p05":12.0,"rank_p95":13.0},{"id":"IMP04","label":"Importer 04","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":6.0,"rank_p05":5.0,"rank_p95":8.0},{"id":"IMP05","label":"Importer 05","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":10.0,"rank_p05":8.0,"rank_p95":11.0},{"id":"IMP06","label":"Importer 06","eligible":true,"p_rank1":0.0002,"p_top3":0.967,"median_rank":2.0,"rank_p05":2.0,"rank_p95":3.0},{"id":"IMP07","label":"Importer 07","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":14.0,"rank_p05":14.0,"rank_p95":14.0},{"id":"IMP08","label":"Importer 08","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":11.0,"rank_p05":10.0,"rank_p95":11.0},{"id":"IMP09","label":"Importer 09","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":8.0,"rank_p05":6.0,"rank_p95":9.0},{"id":"IMP10","label":"Importer 10","eligible":true,"p_rank1":0.0,"p_top3":0.03,"median_rank":6.0,"rank_p05":4.0,"rank_p95":8.0},{"id":"IMP11","label":"Importer 11","eligible":false,"p_rank1":null,"p_top3":null,"median_rank":null,"rank_p05":null,"rank_p95":null},{"id":"IMP12","label":"Importer 12","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":6.0,"rank_p05":5.0,"rank_p95":7.0},{"id":"IMP13","label":"Importer 13","eligible":false,"p_rank1":null,"p_top3":null,"median_rank":null,"rank_p05":null,"rank_p95":null},{"id":"IMP14","label":"Importer 14","eligible":true,"p_rank1":0.0,"p_top3":0.0662,"median_rank":4.0,"rank_p05":3.0,"rank_p95":6.0},{"id":"IMP15","label":"Importer 15","eligible":true,"p_rank1":0.9998,"p_top3":1.0,"median_rank":1.0,"rank_p05":1.0,"rank_p95":1.0},{"id":"IMP16","label":"Importer 16","eligible":true,"p_rank1":0.0,"p_top3":0.0,"median_rank":9.0,"rank_p05":9.0,"rank_p95":10.0}],"pillar_out":[{"dropped_pillar":"A","leader":"Importer 15","same_leader_as_base":true},{"dropped_pillar":"B","leader":"Importer 15","same_leader_as_base":true},{"dropped_pillar":"C","leader":"Importer 15","same_leader_as_base":true},{"dropped_pillar":"D","leader":"Importer 15","same_leader_as_base":true},{"dropped_pillar":"E","leader":"Importer 15","same_leader_as_base":true}],"dq":{"injected":["IMP07 FY-Q3 B1 left blank","IMP12 FY-Q2 A3 entered as 982 instead of a percentage","IMP03 FY-Q4 C2 reported as 0","IMP09 FY-Q1 D1 entered as 31 (typo)"],"caught":[{"importer_id":"IMP03","quarter":"FY-Q4","kpi_id":"C2","rule":"R3 zero on a rate that cannot be zero","action":"excluded; imputed with importer's mean of other quarters","value":0.0},{"importer_id":"IMP07","quarter":"FY-Q3","kpi_id":"B1","rule":"R1 completeness","action":"excluded; imputed with importer's mean of other quarters","value":NaN},{"importer_id":"IMP12","quarter":"FY-Q2","kpi_id":"A3","rule":"R2 plausible range","action":"excluded; imputed with importer's mean of other quarters","value":982.0},{"importer_id":"IMP09","quarter":"FY-Q1","kpi_id":"D1","rule":"R4 outlier vs own history (>4 pooled SD)","action":"excluded pending confirmation; imputed with importer's mean of other quarters","value":31.0}]},"gates":[{"importer_id":"IMP01","current_ratio":1.76,"net_debt_to_ebitda":2.05,"open_high_findings":1,"reporting_completeness_pct":95.9,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s)"},{"importer_id":"IMP02","current_ratio":1.74,"net_debt_to_ebitda":3.25,"open_high_findings":1,"reporting_completeness_pct":97.3,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch"},{"importer_id":"IMP03","current_ratio":1.64,"net_debt_to_ebitda":1.8,"open_high_findings":0,"reporting_completeness_pct":94.7,"gate_status":"AMBER","gate_reasons":"data: reporting completeness < 95%"},{"importer_id":"IMP04","current_ratio":1.86,"net_debt_to_ebitda":3.03,"open_high_findings":1,"reporting_completeness_pct":96.9,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch"},{"importer_id":"IMP05","current_ratio":1.33,"net_debt_to_ebitda":3.4,"open_high_findings":1,"reporting_completeness_pct":100.0,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch"},{"importer_id":"IMP06","current_ratio":2.06,"net_debt_to_ebitda":1.24,"open_high_findings":0,"reporting_completeness_pct":97.4,"gate_status":"GREEN","gate_reasons":""},{"importer_id":"IMP07","current_ratio":1.69,"net_debt_to_ebitda":2.5,"open_high_findings":1,"reporting_completeness_pct":100.0,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s)"},{"importer_id":"IMP08","current_ratio":1.32,"net_debt_to_ebitda":0.65,"open_high_findings":0,"reporting_completeness_pct":98.4,"gate_status":"GREEN","gate_reasons":""},{"importer_id":"IMP09","current_ratio":1.51,"net_debt_to_ebitda":3.52,"open_high_findings":2,"reporting_completeness_pct":97.5,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s); financial: liquidity/leverage watch"},{"importer_id":"IMP10","current_ratio":1.24,"net_debt_to_ebitda":0.69,"open_high_findings":0,"reporting_completeness_pct":97.3,"gate_status":"GREEN","gate_reasons":""},{"importer_id":"IMP11","current_ratio":1.36,"net_debt_to_ebitda":3.36,"open_high_findings":4,"reporting_completeness_pct":95.9,"gate_status":"RED","gate_reasons":"integrity: >=3 open high-severity findings; financial: liquidity/leverage watch"},{"importer_id":"IMP12","current_ratio":1.84,"net_debt_to_ebitda":2.94,"open_high_findings":0,"reporting_completeness_pct":98.8,"gate_status":"GREEN","gate_reasons":""},{"importer_id":"IMP13","current_ratio":0.94,"net_debt_to_ebitda":3.57,"open_high_findings":0,"reporting_completeness_pct":90.7,"gate_status":"RED","gate_reasons":"financial: liquidity/leverage breach; data: reporting completeness < 95%"},{"importer_id":"IMP14","current_ratio":1.47,"net_debt_to_ebitda":1.88,"open_high_findings":1,"reporting_completeness_pct":100.0,"gate_status":"AMBER","gate_reasons":"integrity: open high-severity finding(s)"},{"importer_id":"IMP15","current_ratio":1.83,"net_debt_to_ebitda":0.59,"open_high_findings":0,"reporting_completeness_pct":92.3,"gate_status":"AMBER","gate_reasons":"data: reporting completeness < 95%"},{"importer_id":"IMP16","current_ratio":1.76,"net_debt_to_ebitda":1.75,"open_high_findings":0,"reporting_completeness_pct":100.0,"gate_status":"GREEN","gate_reasons":""}],"gate_detail":{"IMP01":{"financial":"GREEN","integrity":"AMBER","data":"GREEN"},"IMP02":{"financial":"AMBER","integrity":"AMBER","data":"GREEN"},"IMP03":{"financial":"GREEN","integrity":"GREEN","data":"AMBER"},"IMP04":{"financial":"AMBER","integrity":"AMBER","data":"GREEN"},"IMP05":{"financial":"AMBER","integrity":"AMBER","data":"GREEN"},"IMP06":{"financial":"GREEN","integrity":"GREEN","data":"GREEN"},"IMP07":{"financial":"GREEN","integrity":"AMBER","data":"GREEN"},"IMP08":{"financial":"GREEN","integrity":"GREEN","data":"GREEN"},"IMP09":{"financial":"AMBER","integrity":"AMBER","data":"GREEN"},"IMP10":{"financial":"GREEN","integrity":"GREEN","data":"GREEN"},"IMP11":{"financial":"AMBER","integrity":"RED","data":"GREEN"},"IMP12":{"financial":"GREEN","integrity":"GREEN","data":"GREEN"},"IMP13":{"financial":"RED","integrity":"GREEN","data":"AMBER"},"IMP14":{"financial":"GREEN","integrity":"AMBER","data":"GREEN"},"IMP15":{"financial":"GREEN","integrity":"GREEN","data":"AMBER"},"IMP16":{"financial":"GREEN","integrity":"GREEN","data":"GREEN"}},"kpi_detail":{"IMP01":{"A1":{"v":85.39,"a":0.9487},"A2":{"v":83.11,"a":0.9234},"A3":{"v":83.12,"a":0.8749},"B1":{"v":86.87,"a":0.9442},"B2":{"v":45.9,"a":0.8346},"B3":{"v":5.35,"a":0.561},"C1":{"v":14.85,"a":0.4242},"C2":{"v":9.38,"a":0.3751},"C3":{"v":5.25,"a":0.4373},"D1":{"v":80.37,"a":0.893},"D2":{"v":89.19,"a":0.9388},"D3":{"v":83.1,"a":0.9233},"E1":{"v":35.23,"a":0.7829},"E2":{"v":47.61,"a":0.7934}},"IMP02":{"A1":{"v":87.32,"a":0.9702},"A2":{"v":87.75,"a":0.975},"A3":{"v":89.23,"a":0.9393},"B1":{"v":88.96,"a":0.967},"B2":{"v":50.55,"a":0.919},"B3":{"v":4.12,"a":0.7282},"C1":{"v":35.7,"a":1.0199},"C2":{"v":23.6,"a":0.9439},"C3":{"v":11.48,"a":0.9565},"D1":{"v":84.69,"a":0.941},"D2":{"v":92.2,"a":0.9705},"D3":{"v":87.03,"a":0.9669},"E1":{"v":52.17,"a":1.1},"E2":{"v":67.86,"a":1.1}},"IMP03":{"A1":{"v":83.98,"a":0.9332},"A2":{"v":82.08,"a":0.912},"A3":{"v":83.92,"a":0.8834},"B1":{"v":87.59,"a":0.952},"B2":{"v":45.7,"a":0.8309},"B3":{"v":4.37,"a":0.6861},"C1":{"v":21.72,"a":0.6205},"C2":{"v":10.26,"a":0.4104},"C3":{"v":5.69,"a":0.474},"D1":{"v":74.99,"a":0.8333},"D2":{"v":85.38,"a":0.8987},"D3":{"v":79.91,"a":0.8879},"E1":{"v":28.62,"a":0.636},"E2":{"v":39.33,"a":0.6555}},"IMP04":{"A1":{"v":83.72,"a":0.9302},"A2":{"v":82.37,"a":0.9152},"A3":{"v":84.41,"a":0.8885},"B1":{"v":88.7,"a":0.9641},"B2":{"v":47.38,"a":0.8615},"B3":{"v":4.31,"a":0.6952},"C1":{"v":31.12,"a":0.889},"C2":{"v":22.67,"a":0.9069},"C3":{"v":10.61,"a":0.884},"D1":{"v":76.95,"a":0.855},"D2":{"v":89.73,"a":0.9446},"D3":{"v":84.2,"a":0.9356},"E1":{"v":44.25,"a":0.9833},"E2":{"v":62.12,"a":1.0354}},"IMP05":{"A1":{"v":89.63,"a":0.9959},"A2":{"v":87.69,"a":0.9743},"A3":{"v":92.75,"a":0.9763},"B1":{"v":88.16,"a":0.9583},"B2":{"v":41.27,"a":0.7503},"B3":{"v":5.29,"a":0.5668},"C1":{"v":25.59,"a":0.7311},"C2":{"v":18.07,"a":0.723},"C3":{"v":8.09,"a":0.6738},"D1":{"v":80.95,"a":0.8994},"D2":{"v":91.32,"a":0.9613},"D3":{"v":84.97,"a":0.9442},"E1":{"v":39.22,"a":0.8715},"E2":{"v":51.84,"a":0.864}},"IMP06":{"A1":{"v":89.07,"a":0.9896},"A2":{"v":88.87,"a":0.9875},"A3":{"v":93.41,"a":0.9833},"B1":{"v":93.2,"a":1.0131},"B2":{"v":56.14,"a":1.0207},"B3":{"v":2.61,"a":1.1},"C1":{"v":36.3,"a":1.0373},"C2":{"v":22.39,"a":0.8957},"C3":{"v":10.39,"a":0.866},"D1":{"v":84.23,"a":0.9359},"D2":{"v":93.17,"a":0.9808},"D3":{"v":87.25,"a":0.9694},"E1":{"v":46.83,"a":1.0406},"E2":{"v":63.85,"a":1.0642}},"IMP07":{"A1":{"v":77.37,"a":0.8596},"A2":{"v":71.59,"a":0.7954},"A3":{"v":74.14,"a":0.7804},"B1":{"v":78.86,"a":0.8572},"B2":{"v":27.33,"a":0.4969},"B3":{"v":8.46,"a":0.3544},"C1":{"v":24.96,"a":0.7132},"C2":{"v":15.99,"a":0.6395},"C3":{"v":6.97,"a":0.5808},"D1":{"v":77.5,"a":0.8611},"D2":{"v":86.39,"a":0.9093},"D3":{"v":78.76,"a":0.8751},"E1":{"v":25.39,"a":0.5643},"E2":{"v":33.67,"a":0.5612}},"IMP08":{"A1":{"v":81.13,"a":0.9014},"A2":{"v":77.55,"a":0.8616},"A3":{"v":81.17,"a":0.8545},"B1":{"v":84.91,"a":0.923},"B2":{"v":41.81,"a":0.7602},"B3":{"v":5.59,"a":0.5364},"C1":{"v":31.05,"a":0.8872},"C2":{"v":21.57,"a":0.8628},"C3":{"v":10.16,"a":0.8469},"D1":{"v":83.42,"a":0.9269},"D2":{"v":92.95,"a":0.9784},"D3":{"v":88.86,"a":0.9873},"E1":{"v":35.79,"a":0.7954},"E2":{"v":43.14,"a":0.7191}},"IMP09":{"A1":{"v":85.18,"a":0.9464},"A2":{"v":82.26,"a":0.914},"A3":{"v":85.35,"a":0.8984},"B1":{"v":90.67,"a":0.9855},"B2":{"v":53.71,"a":0.9765},"B3":{"v":3.39,"a":0.885},"C1":{"v":32.55,"a":0.9301},"C2":{"v":21.47,"a":0.8588},"C3":{"v":10.47,"a":0.8727},"D1":{"v":80.88,"a":0.8987},"D2":{"v":90.29,"a":0.9504},"D3":{"v":84.15,"a":0.935},"E1":{"v":34.5,"a":0.7667},"E2":{"v":44.18,"a":0.7363}},"IMP10":{"A1":{"v":89.33,"a":0.9926},"A2":{"v":87.37,"a":0.9708},"A3":{"v":89.14,"a":0.9383},"B1":{"v":92.25,"a":1.0027},"B2":{"v":57.48,"a":1.045},"B3":{"v":2.83,"a":1.0601},"C1":{"v":28.05,"a":0.8014},"C2":{"v":20.28,"a":0.8112},"C3":{"v":8.28,"a":0.6898},"D1":{"v":83.59,"a":0.9288},"D2":{"v":91.21,"a":0.9601},"D3":{"v":88.23,"a":0.9804},"E1":{"v":38.29,"a":0.8509},"E2":{"v":47.98,"a":0.7997}},"IMP11":{"A1":{"v":89.8,"a":0.9978},"A2":{"v":87.16,"a":0.9684},"A3":{"v":89.9,"a":0.9463},"B1":{"v":94.17,"a":1.0236},"B2":{"v":58.1,"a":1.0564},"B3":{"v":2.59,"a":1.1},"C1":{"v":32.19,"a":0.9196},"C2":{"v":24.69,"a":0.9874},"C3":{"v":11.88,"a":0.9898},"D1":{"v":78.09,"a":0.8676},"D2":{"v":87.53,"a":0.9214},"D3":{"v":81.36,"a":0.9041},"E1":{"v":44.24,"a":0.9832},"E2":{"v":56.41,"a":0.9401}},"IMP12":{"A1":{"v":86.52,"a":0.9613},"A2":{"v":84.5,"a":0.9389},"A3":{"v":86.8,"a":0.9137},"B1":{"v":90.06,"a":0.9789},"B2":{"v":48.41,"a":0.8802},"B3":{"v":4.69,"a":0.6403},"C1":{"v":34.5,"a":0.9858},"C2":{"v":22.7,"a":0.9081},"C3":{"v":10.23,"a":0.8523},"D1":{"v":89.22,"a":0.9913},"D2":{"v":94.75,"a":0.9974},"D3":{"v":90.91,"a":1.0101},"E1":{"v":37.13,"a":0.8252},"E2":{"v":51.33,"a":0.8555}},"IMP13":{"A1":{"v":83.89,"a":0.9321},"A2":{"v":82.69,"a":0.9188},"A3":{"v":86.34,"a":0.9088},"B1":{"v":88.63,"a":0.9634},"B2":{"v":47.63,"a":0.866},"B3":{"v":4.46,"a":0.673},"C1":{"v":18.37,"a":0.5247},"C2":{"v":13.93,"a":0.5571},"C3":{"v":6.63,"a":0.5525},"D1":{"v":69.83,"a":0.7759},"D2":{"v":83.58,"a":0.8798},"D3":{"v":78.9,"a":0.8767},"E1":{"v":32.34,"a":0.7186},"E2":{"v":45.75,"a":0.7625}},"IMP14":{"A1":{"v":85.72,"a":0.9525},"A2":{"v":83.81,"a":0.9312},"A3":{"v":87.08,"a":0.9166},"B1":{"v":88.03,"a":0.9569},"B2":{"v":43.58,"a":0.7924},"B3":{"v":4.69,"a":0.64},"C1":{"v":36.36,"a":1.039},"C2":{"v":28.27,"a":1.1},"C3":{"v":12.83,"a":1.0692},"D1":{"v":82.67,"a":0.9185},"D2":{"v":92.08,"a":0.9693},"D3":{"v":86.01,"a":0.9557},"E1":{"v":44.38,"a":0.9861},"E2":{"v":56.34,"a":0.939}},"IMP15":{"A1":{"v":93.34,"a":1.0371},"A2":{"v":92.2,"a":1.0245},"A3":{"v":96.93,"a":1.0203},"B1":{"v":90.72,"a":0.986},"B2":{"v":55.43,"a":1.0078},"B3":{"v":3.05,"a":0.9836},"C1":{"v":42.64,"a":1.1},"C2":{"v":31.73,"a":1.1},"C3":{"v":15.01,"a":1.1},"D1":{"v":88.16,"a":0.9796},"D2":{"v":97.05,"a":1.0216},"D3":{"v":94.38,"a":1.0486},"E1":{"v":47.65,"a":1.0589},"E2":{"v":61.32,"a":1.022}},"IMP16":{"A1":{"v":80.82,"a":0.898},"A2":{"v":76.93,"a":0.8548},"A3":{"v":78.93,"a":0.8308},"B1":{"v":89.57,"a":0.9736},"B2":{"v":49.37,"a":0.8977},"B3":{"v":4.62,"a":0.649},"C1":{"v":30.27,"a":0.8649},"C2":{"v":21.39,"a":0.8556},"C3":{"v":10.09,"a":0.8406},"D1":{"v":77.91,"a":0.8657},"D2":{"v":88.72,"a":0.9339},"D3":{"v":82.28,"a":0.9143},"E1":{"v":38.73,"a":0.8607},"E2":{"v":51.48,"a":0.858}}},"n_values":896};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=(x,d=1)=>Number(x).toFixed(d);
+const ord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PCH={A:'#338ced',B:'#e76624',C:'#00a888',D:'#9887ef',E:'#e24d8b'};
+const PK=['A','B','C','D','E'];
+const sw=p=>`<span class="sw" style="background:${PCH[p]}"></span>`;
+const cap=s=>s[0]+s.slice(1).toLowerCase();
+const IMP=Object.fromEntries(D.importers.map(i=>[i.id,i]));
+const byBase=[...D.importers].sort((a,b)=>b.total-a.total);
+const nElig=D.importers.filter(i=>i.eligible).length;
+const LEAD=D.importers.find(i=>i.label===D.leader).id;
 
-/* ---------- dials ---------- */
-const CAP=110, ANG=v=>-150+255*Math.max(0,Math.min(CAP,v))/CAP;
-const pt=(r,a)=>{const t=a*Math.PI/180;return [100+r*Math.sin(t),100-r*Math.cos(t)]};
-const r2=x=>Math.round(x*100)/100;
-function arcPath(r,a0,a1){const [x0,y0]=pt(r,a0),[x1,y1]=pt(r,a1);return `M${r2(x0)} ${r2(y0)}A${r} ${r} 0 ${a1-a0>180?1:0} 1 ${r2(x1)} ${r2(y1)}`}
-function dialSVG(nums,fs,readSize){
-  let s=`<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="98" class="bezel"/><circle cx="100" cy="100" r="93" class="face"/>`;
-  s+=`<path d="${arcPath(86,ANG(100),ANG(CAP))}" class="zone"/>`;
-  for(let v=0;v<=CAP;v+=5){const a=ANG(v),maj=v%10===0,lim=v===CAP;const [x0,y0]=pt(lim?72:maj?76:81,a),[x1,y1]=pt(lim?91:89,a);
-    s+=`<line x1="${r2(x0)}" y1="${r2(y0)}" x2="${r2(x1)}" y2="${r2(y1)}" class="tick${lim?' lim':maj?' maj':''}"/>`}
-  for(const v of nums){const [x,y]=pt(fs>15?60:62,ANG(v));s+=`<text x="${r2(x)}" y="${r2(y)}" class="dnum" font-size="${fs}">${v}</text>`}
-  s+=`<g class="needle" style="transform:rotate(${ANG(0)}deg)"><line x1="100" y1="116" x2="100" y2="22"/><line class="tail" x1="100" y1="116" x2="100" y2="104"/></g><circle cx="100" cy="100" r="8.5" class="hub"/>`;
-  if(readSize) s+=`<text x="100" y="153" class="dread" font-size="${readSize}">0.0</text>`;
-  return s+'</svg>';
+/* ---------- state ---------- */
+const MODES=[
+  {k:'normal',name:'Normal',w:{A:30,B:20,C:20,D:15,E:15},cap:'Normal: the base weights, 30, 20, 20, 15, 15.'},
+  {k:'sport',name:'Sport',w:{A:20,B:15,C:35,D:15,E:15},cap:'Sport: sales innovation weighted up to 35%.'},
+  {k:'sportplus',name:'Sport+',w:{A:15,B:10,C:50,D:15,E:10},cap:'Sport+: half the score from sales innovation. Deliberately extreme.'},
+  {k:'wet',name:'Wet',w:{A:35,B:25,C:10,D:10,E:20},cap:'Wet: the cautious set-up. Customer, service and loyalty carry 80%.'},
+  {k:'individual',name:'Individual',w:null,cap:'Individual: your own weights from the sliders below.'}];
+let W={...MODES[0].w}, mode='normal', cur=LEAD, pSel='A', sel=null;
+const wn=()=>{const t=PK.reduce((a,p)=>a+W[p],0)||1;return Object.fromEntries(PK.map(p=>[p,W[p]/t]))};
+const score=(imp,w=wn())=>PK.reduce((a,p)=>a+imp.pf[p]*w[p],0);
+function standings(useG=true){const w=wn();const rows=D.importers.map(i=>({...i,t:score(i,w)})).sort((a,b)=>b.t-a.t);let r=0;rows.forEach(x=>{x.elig=!useG||x.eligible;x.rk=x.elig?++r:null});return rows}
+
+/* ---------- views + routing ---------- */
+const VIEWS=['overview','cockpit','method','stress','powerbi','garage'];
+const entered={};
+function show(v){
+  if(!VIEWS.includes(v))v='overview';
+  VIEWS.forEach(x=>{$('#v-'+x).hidden=x!==v});
+  $$('.pill button').forEach(b=>{const on=b.dataset.v===v;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;if(on&&b.scrollIntoView)b.scrollIntoView({block:'nearest',inline:'center'})});
+  scrollTo(0,0);
+  document.title=(v==='overview'?'Every importer, on five dials':$(`.pill button[data-v="${v}"]`).textContent+' | Every importer, on five dials')+' | Amaan Khan';
+  const first=!entered[v];entered[v]=true;
+  if(v==='cockpit'&&first)ignite();
+  if(v==='stress'&&first)setTimeout(runMC,350);
+  if(v==='method'&&first)setTimeout(runTerm,500);
 }
-const ORDER=['D','B','A','C','E'], SIZE={A:270,B:180,C:180,D:135,E:135};
-$('#cluster').innerHTML=ORDER.map(p=>{
-  const big=p==='A', nums=big?[20,40,60,80,100]:[50,100];
-  return `<figure class="dial" data-p="${p}" style="--w:${SIZE[p]}">${dialSVG(nums,big?13:18,big?26:30)}<figcaption><span class="cv"></span>${sw(p)}<b>${D.pillars[p].name}</b><span class="wt">${Math.round(D.pillars[p].weight*100)}%</span></figcaption></figure>`}).join('');
+$$('.pill button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.v}));
+$('.pill').addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;const i=VIEWS.indexOf(location.hash.slice(1)||'overview');const n=VIEWS[(i+(e.key==='ArrowRight'?1:-1)+VIEWS.length)%VIEWS.length];location.hash=n;setTimeout(()=>$(`.pill button[data-v="${n}"]`).focus(),0)});
+addEventListener('hashchange',()=>show(location.hash.slice(1)));
 
-const LAMPS=[
-  {k:'financial',name:'Financial',icon:'<path d="M4 17h16M6 17V10M10 17V7M14 17V11M18 17V5"/>'},
-  {k:'integrity',name:'Integrity',icon:'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>'},
-  {k:'data',name:'Data',icon:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>'}];
-const WORD={GREEN:'OK',AMBER:'Watch',RED:'Fail'};
-$('#imp').innerHTML=byScore.map(i=>`<option value="${i.id}">${i.label}</option>`).join('');
-
-let cur=D.importers.find(i=>i.label===D.leader).id;
-function setNeedles(root,vals,text=true){root.querySelectorAll('figure[data-p]').forEach(f=>{const v=vals(f.dataset.p);
-  f.querySelector('.needle').style.transform=`rotate(${ANG(v)}deg)`;if(text)f.querySelectorAll('.dread,.cv').forEach(t=>t.textContent=fmt(v))})}
-function showImporter(id){
-  cur=id;const x=D.importers.find(i=>i.id===id);
-  setNeedles($('#cluster'),p=>x.pillars[p]);
-  $('#imp').value=id;
-  $('#readout').innerHTML=`<b>${x.label}</b>: ${fmt(x.total)} in total, `+(x.eligible?`${ord(x.rank_eligible)} of ${nElig} eligible importers.`:`not eligible because a risk gate is red.`);
-  const g=D.gate_detail[id];
-  $('#lamps').innerHTML=LAMPS.map(l=>`<span class="lamp" data-s="${g[l.k]}" title="${l.name} gate: ${g[l.k].toLowerCase()}"><svg viewBox="0 0 24 24" aria-hidden="true">${l.icon}</svg>${l.name} <span class="st">${WORD[g[l.k]]}</span></span>`).join('');
+/* ---------- overview: decomposition card ---------- */
+let dcId=LEAD;
+function renderDecomp(){
+  const x=IMP[dcId],w=MODES[0].w,contrib=PK.map(p=>({p,v:x.pf[p]*w[p]/100}));
+  $('#dc-name').textContent=x.label;
+  $('#dc-avg').textContent=fmt(PK.reduce((a,p)=>a+x.pf[p],0)/5,2);
+  $('#dc-rows').innerHTML=contrib.map(c=>`<li><span>${sw(c.p)}${D.pillars[c.p].name}</span><span class="bar"><i style="width:${Math.min(100,c.v/34*100)}%;background:${PCH[c.p]};box-shadow:0 0 8px ${PCH[c.p]}"></i></span><span class="v">+${fmt(c.v,2)}</span></li>`).join('');
+  $('#dc-sum').textContent=fmt(x.total,2);
+  $('#dc-total').textContent=fmt(x.total,2);
+  $('#dc-rank').textContent=x.eligible?`rank ${x.rank_eligible} of ${nElig}`:'not eligible';
+  $('#dc-gate').innerHTML=`Gate: <span class="${x.gate}">${cap(x.gate)}</span>`;
 }
-function step(d){const i=byScore.findIndex(x=>x.id===cur);showImporter(byScore[(i+d+byScore.length)%byScore.length].id)}
-$('#prev').addEventListener('click',()=>step(-1));
-$('#next').addEventListener('click',()=>step(1));
-$('#imp').addEventListener('change',e=>showImporter(e.target.value));
+function dcStep(d){const i=byBase.findIndex(x=>x.id===dcId);dcId=byBase[(i+d+byBase.length)%byBase.length].id;renderDecomp()}
+$('#dc-prev').addEventListener('click',()=>dcStep(-1));$('#dc-next').addEventListener('click',()=>dcStep(1));
+$('#pillar-chips').innerHTML=PK.map(p=>`<span class="chip"><span class="dot" style="background:${PCH[p]}"></span>${D.pillars[p].name} ${Math.round(D.pillars[p].weight*100)}%</span>`).join('');
+$('#feed').innerHTML='<tr><th class="num">Pos</th><th>Importer</th><th class="num">Total</th><th>Gate</th><th class="num">Award rank</th></tr>'+byBase.slice(0,5).map((x,i)=>`<tr class="${x.eligible?'':'x'}"><td class="num">${i+1}</td><td>${x.label}</td><td class="num">${fmt(x.total,2)}</td><td class="${x.gate}">${cap(x.gate)}</td><td class="num">${x.eligible?x.rank_eligible:'&#8212;'}</td></tr>`).join('');
 
-/* ignition: when the cluster first comes into view, needles sweep to the limiter and settle */
-showImporter(cur);
-if(!RM){
-  let fired=false;
-  setNeedles($('#cluster'),()=>0,false);
-  const ignite=()=>{if(fired)return;fired=true;
-    setNeedles($('#cluster'),()=>CAP,false);
-    setTimeout(()=>setNeedles($('#cluster'),p=>D.importers.find(i=>i.id===cur).pillars[p]),1200);};
-  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){ignite();io.disconnect()}},{threshold:.55});io.observe($('#cluster'))}else ignite();
-  const _show=showImporter;showImporter=id=>{_show(id);if(!fired){fired=true}};
-  const fr=$('#hero-frame');let tick=false;
-  addEventListener('scroll',()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{const y=scrollY;if(y<innerHeight*1.3)fr.style.translate=`0 ${Math.round(y*0.3)}px`;tick=false})},{passive:true});
-}
+/* counters */
+function countUp(el){const to=+el.dataset.to,suf=el.dataset.suffix||'',sep=el.dataset.sep;if(RM){el.textContent=(sep?to.toLocaleString('en'):to)+suf;return}const t0=performance.now(),dur=1300;(function f(t){const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3),v=Math.round(to*e);el.textContent=(sep?v.toLocaleString('en'):v)+suf;if(k<1)requestAnimationFrame(f)})(t0)}
+const cio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){countUp(e.target);cio.unobserve(e.target)}}),{threshold:.6});
+$$('#stats .n').forEach(n=>cio.observe(n));
 
-/* 1. deliveries chart */
+/* deliveries chart */
 (function(){
   const pts=[{y:'2019',v:6891,r:true},{y:'2020',v:6212,r:false},{y:'2022',v:8237,r:false},{y:'2023',v:9143,r:false},{y:'2024',v:9509,r:true},{y:'2025',v:9628,r:true}];
-  const W=520,H=300,m={l:46,r:10,t:18,b:34},iw=W-m.l-m.r,ih=H-m.t-m.b,max=10000,bw=iw/pts.length*0.58;
-  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Regional deliveries by year: 2019 6,891; 2020 about 6,212; 2022 about 8,237; 2023 about 9,143; 2024 9,509; 2025 9,628">`;
-  for(const t of [0,2500,5000,7500,10000]){const y=m.t+ih-(t/max)*ih;s+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y}" y2="${y}" stroke="${t?'#2b3033':'#4a5155'}"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#929992">${t.toLocaleString()}</text>`}
-  pts.forEach((p,i)=>{const x=m.l+i*(iw/pts.length)+(iw/pts.length-bw)/2,h=p.v/max*ih,y=m.t+ih-h;
-    s+=`<path d="M${x} ${m.t+ih}V${y+4}q0-4 4-4h${bw-8}q4 0 4 4V${m.t+ih}z" fill="${p.r?'#ece6d6':'#5d6468'}"><title>${p.y}: ${p.r?'':'about '}${p.v.toLocaleString()}</title></path>`;
-    s+=`<text x="${x+bw/2}" y="${y-7}" text-anchor="middle" font-size="12" font-weight="600" fill="#ece6d6">${p.r?'':'~'}${p.v.toLocaleString()}</text>`;
-    s+=`<text x="${x+bw/2}" y="${H-12}" text-anchor="middle" font-size="12" fill="#929992">${p.y}</text>`});
+  const W_=520,H=280,m={l:46,r:10,t:22,b:30},iw=W_-m.l-m.r,ih=H-m.t-m.b,max=10000,bw=iw/pts.length*.56;
+  let s=`<svg viewBox="0 0 ${W_} ${H}" width="100%" role="img" aria-label="Regional deliveries: 2019 6,891; 2020 about 6,212; 2022 about 8,237; 2023 about 9,143; 2024 9,509; 2025 9,628">`;
+  for(const t of [0,2500,5000,7500,10000]){const y=m.t+ih-t/max*ih;s+=`<line x1="${m.l}" x2="${W_-m.r}" y1="${y}" y2="${y}" stroke="${t?'rgba(255,255,255,.06)':'rgba(255,255,255,.2)'}"/><text x="${m.l-8}" y="${y+4}" text-anchor="end" font-size="10.5" fill="#93a1b5" font-family="JetBrains Mono,monospace">${t.toLocaleString('en')}</text>`}
+  pts.forEach((p,i)=>{const x=m.l+i*(iw/pts.length)+(iw/pts.length-bw)/2,h=p.v/max*ih,y=m.t+ih-h,last=i===pts.length-1;
+    s+=`<path d="M${x} ${m.t+ih}V${y+4}q0-4 4-4h${bw-8}q4 0 4 4V${m.t+ih}z" fill="${last?'#e3091b':p.r?'#f2f2f2':'#3a3a40'}" ${last?'style="filter:drop-shadow(0 0 10px rgba(227,9,27,.7))"':''}><title>${p.y}: ${p.r?'':'about '}${p.v.toLocaleString('en')}</title></path>`;
+    s+=`<text x="${x+bw/2}" y="${y-8}" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">${p.r?'':'~'}${p.v.toLocaleString('en')}</text><text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="11" fill="#93a1b5" font-family="JetBrains Mono,monospace">${p.y}</text>`});
   $('#chart-deliv').innerHTML=s+'</svg>';
 })();
 
-/* 2. KPI table */
-(function(){
-  let h='<tr><th>Pillar</th><th>KPI</th><th>Definition</th><th class="num">Target</th><th class="num">Weight in pillar</th></tr>';
-  let last='';
-  for(const k of D.kpis){
-    const first=k.pillar_id!==last;last=k.pillar_id;const pw=D.pillars[k.pillar_id].weight;
-    h+=`<tr><td>${first?`${sw(k.pillar_id)}<b>${k.pillar}</b><br><span class="small">pillar weight ${Math.round(pw*100)}%</span>`:''}</td><td>${k.kpi_id} ${k.kpi_name}${k.direction==='lower is better'?' <span class="small">(lower is better)</span>':''}</td><td class="small">${k.definition}</td><td class="num">${k.target}${k.unit==='%'?'%':''}</td><td class="num">${Math.round(k.weight_in_pillar*100)}%</td></tr>`;
-  }
-  $('#kpi-table').innerHTML=h;
-})();
-
-/* 4. interactive scorecard */
-const base={};for(const p in D.pillars)base[p]=Math.round(D.pillars[p].weight*100);
-let W={...base},sel=null;
-function buildControls(){
-  let h='';for(const p in D.pillars){h+=`<div><label>${sw(p)}${D.pillars[p].name}<span class="pv" id="wv-${p}"></span><input type="range" min="0" max="60" step="1" value="${W[p]}" data-p="${p}" aria-label="${D.pillars[p].name} weight"></label></div>`}
-  $('#weights').innerHTML=h;
-  document.querySelectorAll('#weights input').forEach(el=>el.addEventListener('input',e=>{W[e.target.dataset.p]=+e.target.value;render()}));
-  $('#pleg').innerHTML=Object.keys(D.pillars).map(p=>`<span>${sw(p)}${D.pillars[p].name}</span>`).join('');
+/* ---------- dials ---------- */
+const CAPV=110, ANG=v=>-150+255*Math.max(0,Math.min(CAPV,v))/CAPV;
+const pt=(r,a)=>{const t=a*Math.PI/180;return[100+r*Math.sin(t),100-r*Math.cos(t)]};
+const r2=x=>Math.round(x*100)/100;
+function arcPath(r,a0,a1){const[x0,y0]=pt(r,a0),[x1,y1]=pt(r,a1);return`M${r2(x0)} ${r2(y0)}A${r} ${r} 0 ${a1-a0>180?1:0} 1 ${r2(x1)} ${r2(y1)}`}
+function dialSVG(nums,fs,rs){
+  let s=`<svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="98" class="bezel"/><circle cx="100" cy="100" r="93" class="face"/><path d="${arcPath(86,ANG(100),ANG(CAPV))}" class="zone"/>`;
+  for(let v=0;v<=CAPV;v+=5){const a=ANG(v),maj=v%10===0,lim=v===CAPV;const[x0,y0]=pt(lim?72:maj?76:81,a),[x1,y1]=pt(lim?91:89,a);s+=`<line x1="${r2(x0)}" y1="${r2(y0)}" x2="${r2(x1)}" y2="${r2(y1)}" class="tick${lim?' lim':maj?' maj':''}"/>`}
+  for(const v of nums){const[x,y]=pt(fs>15?60:62,ANG(v));s+=`<text x="${r2(x)}" y="${r2(y)}" class="dnum" font-size="${fs}">${v}</text>`}
+  s+=`<g class="needle" style="transform:rotate(${ANG(0)}deg)"><line x1="100" y1="116" x2="100" y2="22"/><line class="tail" x1="100" y1="116" x2="100" y2="104"/></g><circle cx="100" cy="100" r="8.5" class="hub"/>`;
+  if(rs)s+=`<text x="100" y="153" class="dread" font-size="${rs}">0.0</text>`;
+  return s+'</svg>';
 }
-function weightsNorm(){const t=Object.values(W).reduce((a,b)=>a+b,0)||1;const o={};for(const p in W)o[p]=W[p]/t;return o}
-function score(imp,wn){let t=0;for(const p in wn)t+=imp.pillars[p]*wn[p];return t}
+const ORDER=['D','B','A','C','E'];
+$('#cluster').innerHTML=ORDER.map(p=>{const big=p==='A';return`<figure class="dial" data-p="${p}" style="--w:270"><button type="button" class="dialbtn" data-p="${p}" aria-pressed="${p===pSel}" aria-label="${D.pillars[p].name}: show KPIs">${dialSVG(big?[20,40,60,80,100]:[50,100],big?13:18,big?25:29)}</button><figcaption><span class="cv"></span>${sw(p)}${D.pillars[p].name}<span class="wt" id="wt-${p}"></span></figcaption></figure>`}).join('');
+function sizeDials(){const w=wn();PK.forEach(p=>{const f=$(`#cluster .dial[data-p="${p}"]`);f.style.setProperty('--w',Math.max(78,Math.min(440,Math.round(900*w[p]))));$('#wt-'+p).textContent=Math.round(w[p]*100)+'%'})}
+function setNeedles(root,vals,text=true){root.querySelectorAll('figure[data-p]').forEach(f=>{const v=vals(f.dataset.p);f.querySelector('.needle').style.transform=`rotate(${ANG(v)}deg)`;if(text)f.querySelectorAll('.dread,.cv').forEach(t=>t.textContent=fmt(v))})}
+const LAMPS=[{k:'financial',name:'Financial',icon:'<path d="M4 17h16M6 17V10M10 17V7M14 17V11M18 17V5"/>'},{k:'integrity',name:'Integrity',icon:'<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>'},{k:'data',name:'Data',icon:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>'}];
+const WORD={GREEN:'OK',AMBER:'Watch',RED:'Fail'};
+$('#imp').innerHTML=byBase.map(i=>`<option value="${i.id}">${i.label}</option>`).join('');
+let ignited=false;
+function readout(){const rows=standings($('#gates').checked),x=rows.find(r=>r.id===cur),mn=MODES.find(m=>m.k===mode).name;
+  $('#readout').innerHTML=`<b>${x.label}</b>: ${fmt(x.t)} in ${mn}, `+(x.rk?`${ord(x.rk)} of ${rows.filter(r=>r.elig).length} eligible.`:`not eligible, a lamp is red.`)}
+function showImporter(id){cur=id;const x=IMP[id];
+  if(ignited)setNeedles($('#cluster'),p=>x.pf[p]);else $$('#cluster figure').forEach(f=>f.querySelectorAll('.dread,.cv').forEach(t=>t.textContent=fmt(x.pf[f.dataset.p])));
+  $('#imp').value=id;readout();const g=D.gate_detail[id];
+  $('#lamps').innerHTML=LAMPS.map(l=>`<span class="lamp" data-s="${g[l.k]}" title="${l.name} gate: ${g[l.k].toLowerCase()}"><svg viewBox="0 0 24 24" aria-hidden="true">${l.icon}</svg>${l.name} <span class="st">${WORD[g[l.k]]}</span></span>`).join('');
+  renderDrill()}
+function step(d){const i=byBase.findIndex(x=>x.id===cur);showImporter(byBase[(i+d+byBase.length)%byBase.length].id)}
+$('#prev').addEventListener('click',()=>step(-1));$('#next').addEventListener('click',()=>step(1));
+$('#imp').addEventListener('change',e=>showImporter(e.target.value));
+function ignite(){if(ignited)return;if(RM){ignited=true;setNeedles($('#cluster'),p=>IMP[cur].pf[p]);return}
+  setTimeout(()=>{ignited=true;setNeedles($('#cluster'),()=>CAPV,false);setTimeout(()=>setNeedles($('#cluster'),p=>IMP[cur].pf[p]),1150)},350)}
+$$('.dialbtn').forEach(b=>b.addEventListener('click',()=>{pSel=b.dataset.p;$$('.dialbtn').forEach(x=>x.setAttribute('aria-pressed',x.dataset.p===pSel));renderDrill();if(innerWidth<760)$('#drill').scrollIntoView({behavior:RM?'auto':'smooth',block:'nearest'})}));
+
+/* drill-down */
+function attBar(a){const W_=300,X=v=>v/1.1*W_;return`<svg class="attbar" viewBox="0 0 ${W_} 18" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="${W_}" height="6" rx="3" fill="rgba(255,255,255,.06)"/><rect x="0" y="6" width="${X(a)}" height="6" rx="3" fill="${a>=1?'#3ddc84':a>=.85?'#f5b62e':'#ff4a4a'}"/><line x1="${X(1)}" x2="${X(1)}" y1="1" y2="17" stroke="#fff" stroke-width="1.5"/><line x1="${W_-1}" x2="${W_-1}" y1="1" y2="17" stroke="#e3091b" stroke-width="2"/></svg>`}
+function renderDrill(){const x=IMP[cur],ks=D.kpis.filter(k=>k.pillar_id===pSel);
+  let h=`<div class="card-h"><span class="lbl muted">Pillar // ${D.pillars[pSel].name} // ${x.label}</span><span class="mono" style="font-weight:800;font-size:20px;color:#fff">${fmt(x.pf[pSel])}</span></div><div class="scroll"><table><tr><th>KPI</th><th class="num">Actual</th><th class="num">Target</th><th>Attainment</th><th class="num">%</th><th class="num">Weight</th></tr>`;
+  for(const k of ks){const d=D.kpi_detail[cur][k.kpi_id],u=k.unit==='%'?'%':'';h+=`<tr><td>${k.kpi_id} ${k.kpi_name}${k.direction==='lower is better'?' <span class="small">(lower is better)</span>':''}</td><td class="num">${fmt(d.v)}${u}</td><td class="num">${k.target}${u}</td><td>${attBar(d.a)}</td><td class="num">${fmt(d.a*100)}</td><td class="num">${Math.round(k.weight_in_pillar*100)}%</td></tr>`}
+  $('#drill').innerHTML=h+'</table></div><p class="small" style="margin:10px 0 0">Four-quarter average after data-quality cleaning. White tick = target, red tick = the 110% cap. Pillar score = weighted attainment &times; 100.</p>'}
+
+/* drive modes */
+$('#modes').innerHTML=MODES.map(m=>`<button type="button" role="radio" data-m="${m.k}" aria-checked="${m.k===mode}">${m.name}<small>${m.w?PK.map(p=>m.w[p]).join(' '):'your weights'}</small></button>`).join('');
+function setMode(k,fromSlider){mode=k;const m=MODES.find(x=>x.k===k);if(m.w)W={...m.w};$$('#modes button').forEach(b=>b.setAttribute('aria-checked',b.dataset.m===k));$('#modecap').textContent=m.cap;if(!fromSlider)buildControls();sizeDials();readout();render()}
+$$('#modes button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.m)));
+
+/* standings table with animated re-ranking */
+function buildControls(){
+  $('#weights').innerHTML=PK.map(p=>`<div><label>${sw(p)}${D.pillars[p].name}<span class="pv" id="wv-${p}"></span><input type="range" min="0" max="60" step="1" value="${W[p]}" data-p="${p}" aria-label="${D.pillars[p].name} weight"></label></div>`).join('');
+  $$('#weights input').forEach(el=>el.addEventListener('input',e=>{W[e.target.dataset.p]=+e.target.value;if(mode!=='individual')setMode('individual',true);else{sizeDials();readout();render()}}));
+  $('#pleg').innerHTML=PK.map(p=>`<span>${sw(p)}${D.pillars[p].name}</span>`).join('');
+}
 function render(){
-  const wn=weightsNorm(),useG=$('#gates').checked;
-  for(const p in wn)$('#wv-'+p).textContent=Math.round(wn[p]*100)+'%';
-  $('#wnote').textContent=Object.values(W).reduce((a,b)=>a+b,0)===0?'All weights are zero.':'Weights are rescaled to sum to 100%.';
-  const rows=D.importers.map(i=>({...i,t:score(i,wn)})).sort((a,b)=>b.t-a.t);
-  let r=0;rows.forEach(x=>{x.elig=!useG||x.eligible;if(x.elig){r++;x.rk=r}else x.rk=null});
+  const w=wn(),rows=standings($('#gates').checked);
+  PK.forEach(p=>{const e=$('#wv-'+p);if(e)e.textContent=Math.round(w[p]*100)+'%'});
+  $('#wnote').textContent=PK.reduce((a,p)=>a+W[p],0)===0?'All weights are zero.':'Weights are rescaled to sum to 100%.';
+  const before={};$$('#rank tr[data-id]').forEach(tr=>before[tr.dataset.id]=tr.getBoundingClientRect().top);
   const mx=Math.max(...rows.map(x=>x.t),100)*1.02;
   let h='<tr><th class="num">Rank</th><th>Importer</th><th>Weighted contribution by pillar</th><th class="num">Score</th><th>Gate</th></tr>';
-  for(const x of rows){
-    let bar=`<svg viewBox="0 0 420 16" width="100%" height="16" style="max-width:420px;display:block" aria-hidden="true">`;let cx=0;
-    for(const p in wn){const w=x.pillars[p]*wn[p]/mx*420;bar+=`<rect x="${cx}" y="1" width="${Math.max(w-2,0)}" height="14" rx="1.5" fill="${PCH[p]}" opacity="${x.elig?1:.3}"/>`;cx+=w}
-    bar+='</svg>';
-    h+=`<tr class="rowbtn ${sel===x.id?'sel':''}" data-id="${x.id}" tabindex="0"><td class="num">${x.rk??'–'}</td><td>${x.label}${x.elig?'':' <span class="small">(not eligible)</span>'}</td><td>${bar}</td><td class="num">${fmt(x.t)}</td><td class="${x.gate}" title="${x.reasons||'no issues'}">${x.gate[0]+x.gate.slice(1).toLowerCase()}</td></tr>`;
-  }
+  for(const x of rows){let bar=`<svg viewBox="0 0 420 14" width="100%" height="14" style="max-width:420px;display:block" aria-hidden="true">`,cx=0;
+    for(const p of PK){const ww=x.pf[p]*w[p]/mx*420;bar+=`<rect x="${cx}" y="1" width="${Math.max(ww-2,0)}" height="12" rx="2" fill="${PCH[p]}" opacity="${x.elig?1:.25}"/>`;cx+=ww}
+    h+=`<tr class="rowbtn ${sel===x.id?'sel':''}" data-id="${x.id}" tabindex="0"><td class="num">${x.rk??'&#8212;'}</td><td>${x.label}${x.elig?'':' <span class="small">(not eligible)</span>'}</td><td>${bar}</svg></td><td class="num">${fmt(x.t)}</td><td class="${x.gate}" title="${x.reasons||'no issues'}">${cap(x.gate)}</td></tr>`}
   $('#rank').innerHTML=h;
-  document.querySelectorAll('#rank .rowbtn').forEach(el=>{const go=()=>{sel=el.dataset.id;showImporter(sel);render()};el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
-  renderDetail(rows,wn);
+  if(!RM){$$('#rank tr[data-id]').forEach(tr=>{const b=before[tr.dataset.id];if(b===undefined)return;const d=b-tr.getBoundingClientRect().top;if(Math.abs(d)<1)return;tr.style.transform=`translateY(${d}px)`;tr.style.transition='none';requestAnimationFrame(()=>{tr.style.transition='transform .55s cubic-bezier(.2,.8,.2,1)';tr.style.transform=''})})}
+  $$('#rank .rowbtn').forEach(el=>{const go=()=>{sel=el.dataset.id;showImporter(sel);render()};el.addEventListener('click',go);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}})});
+  renderDetail(rows,w);
 }
-function renderDetail(rows,wn){
-  const el=$('#detail');
-  if(!sel){el.innerHTML='<span class="small">Click an importer above to see its pillar profile and its gap to the leader.</span>';return}
+function renderDetail(rows,w){const el=$('#detail');
+  if(!sel){el.innerHTML='<span class="small">Click an importer in the table to see its pillar profile and its gap to the leader. The dials follow your selection.</span>';return}
   const x=rows.find(r=>r.id===sel),L=rows.find(r=>r.elig);
-  let h=`<h3 style="margin-top:0">${x.label} <span class="small">${x.tier} market tier, ${x.centres} centres (synthetic)</span></h3>`;
-  h+=`<p class="small">Gate: <span class="${x.gate}">${x.gate[0]+x.gate.slice(1).toLowerCase()}</span>${x.reasons?'. '+x.reasons[0].toUpperCase()+x.reasons.slice(1)+'.':'.'}</p>`;
-  h+=`<div class="mini">`+['A','B','C','D','E'].map(p=>`<figure data-p="${p}">${dialSVG([],0,34)}<figcaption>${sw(p)}${D.pillars[p].name}</figcaption></figure>`).join('')+`</div>`;
-  if(L&&L.id!==x.id){
-    const gaps=Object.keys(wn).map(p=>({p,g:(x.pillars[p]-L.pillars[p])*wn[p]}));
-    const tot=gaps.reduce((a,b)=>a+b.g,0);
-    h+=`<p>Gap to leader (${L.label}): <b>${fmt(tot)}</b> points. Where it comes from:</p><div style="overflow:auto"><table><tr><th>Pillar</th><th class="num">Importer</th><th class="num">Leader</th><th class="num">Weighted gap</th></tr>`;
-    for(const g of gaps.sort((a,b)=>a.g-b.g))h+=`<tr><td>${sw(g.p)}${D.pillars[g.p].name}</td><td class="num">${fmt(x.pillars[g.p])}</td><td class="num">${fmt(L.pillars[g.p])}</td><td class="num">${g.g>0?'+':''}${fmt(g.g,2)}</td></tr>`;
-    h+='</table></div>';
-  }else if(L){h+=`<p>This importer leads the eligible ranking at the current weights.</p>`}
-  el.innerHTML=h;
-  setNeedles(el,p=>x.pillars[p]);
+  let h=`<div class="card-h"><span class="lbl muted">${x.label} // ${x.tier} market tier // ${x.centres} centres</span><span class="${x.gate}" style="font:800 11px/1 var(--mono);letter-spacing:.1em">${x.gate}</span></div>`;
+  if(x.reasons)h+=`<p class="small" style="margin:0 0 6px">${x.reasons[0].toUpperCase()+x.reasons.slice(1)}.</p>`;
+  h+=`<div class="mini">`+PK.map(p=>`<figure data-p="${p}">${dialSVG([],0,32)}<figcaption>${sw(p)}${D.pillars[p].name}</figcaption></figure>`).join('')+`</div>`;
+  if(L&&L.id!==x.id){const gaps=PK.map(p=>({p,g:(x.pf[p]-L.pf[p])*w[p]}));const tot=gaps.reduce((a,b)=>a+b.g,0);
+    h+=`<p class="prose" style="margin:12px 0 10px">Gap to leader (${L.label}): <b>${fmt(tot)}</b> points. Where it comes from:</p><div class="scroll"><table><tr><th>Pillar</th><th class="num">Importer</th><th class="num">Leader</th><th class="num">Weighted gap</th></tr>`;
+    for(const g of gaps.sort((a,b)=>a.g-b.g))h+=`<tr><td>${sw(g.p)}${D.pillars[g.p].name}</td><td class="num">${fmt(x.pf[g.p])}</td><td class="num">${fmt(L.pf[g.p])}</td><td class="num">${g.g>0?'+':''}${fmt(g.g,2)}</td></tr>`;h+='</table></div>'}
+  else if(L)h+=`<p class="prose" style="margin:12px 0 0">This importer leads the eligible ranking at the current weights.</p>`;
+  el.innerHTML=h;setNeedles(el,p=>x.pf[p]);
 }
+$('#gates').addEventListener('change',()=>{render();readout()});
+$('#reset').addEventListener('click',()=>setMode('normal'));
 
-/* 5. sensitivity chart */
-(function(){
-  const lead=D.sensitivity.find(s=>s.label===D.leader);
-  const e=D.sensitivity.filter(s=>s.eligible).sort((a,b)=>a.median_rank-b.median_rank||a.rank_p05-b.rank_p05);
-  const W=520,rh=22,m={l:92,r:14,t:22,b:28},H=m.t+m.b+rh*e.length,n=nElig,iw=W-m.l-m.r;
-  const X=r=>m.l+(r-1)/(n-1)*iw;
-  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Rank range for each eligible importer under 5,000 random weight sets">`;
-  for(let r=1;r<=n;r++){s+=`<line x1="${X(r)}" x2="${X(r)}" y1="${m.t-4}" y2="${H-m.b}" stroke="#2b3033"/><text x="${X(r)}" y="${H-10}" text-anchor="middle" font-size="10.5" fill="#929992">${r}</text>`}
-  e.forEach((d,i)=>{const y=m.t+i*rh+rh/2;
-    s+=`<text x="${m.l-10}" y="${y+4}" text-anchor="end" font-size="11.5" fill="#ece6d6">${d.label}</text>`;
-    s+=`<line x1="${X(d.rank_p05)}" x2="${X(d.rank_p95)}" y1="${y}" y2="${y}" stroke="#ece6d6" stroke-width="7" stroke-linecap="round" opacity=".22"><title>${d.label}: rank ${d.rank_p05} to ${d.rank_p95}, median ${d.median_rank}</title></line>`;
-    s+=`<circle cx="${X(d.median_rank)}" cy="${y}" r="4.5" fill="#ece6d6" stroke="#202427" stroke-width="2"><title>${d.label}: median rank ${d.median_rank}</title></circle>`});
-  s+=`<text x="${m.l+iw/2}" y="${m.t-10}" text-anchor="middle" font-size="11" fill="#929992">rank among eligible importers (1 = best)</text></svg>`;
-  $('#chart-sens').innerHTML=s;
-  const moves=e.filter(d=>d.rank_p95-d.rank_p05>=2);
-  const top3=e.filter(d=>d.p_top3>0.5).map(d=>d.label);
-  const stable=e.filter(d=>d.rank_p95-d.rank_p05===0).length;
-  let li=`<li><b>${D.leader}</b> is first in ${Math.round(lead.p_rank1*5000).toLocaleString()} of 5,000 weight sets.</li>`;
-  li+=`<li>The top three (${top3.join(', ')}) stay in the top three in at least ${Math.round(Math.min(...e.filter(d=>d.p_top3>0.5).map(d=>d.p_top3))*100)}% of draws, though positions two and three can swap.</li>`;
-  li+=`<li>${stable} of ${e.length} importers keep the same rank in at least 90% of draws. ${moves.length} move by two or more places across the 5th to 95th range: ${moves.map(d=>d.label+' ('+d.rank_p05+' to '+d.rank_p95+')').join(', ')}.</li>`;
-  li+=`<li>Practical reading: the top of the table is robust here, but exact mid-table positions should not be presented as precise without saying they depend on the weights.</li>`;
-  $('#sens-read').innerHTML=li;
-  $('#pillar-out').innerHTML=D.pillar_out.map(p=>`Without ${sw(p.dropped_pillar)}${D.pillars[p.dropped_pillar].name}: ${p.leader}${p.same_leader_as_base?' (unchanged)':' <b>(changed)</b>'}`).join('<br>');
-})();
+/* ---------- method: data-quality terminal ---------- */
+let termBusy=false;
+function runTerm(){if(termBusy)return;termBusy=true;const out=$('#term'),C=D.dq.caught;
+  const f=d=>`${d.importer_id.replace('IMP','Importer ')}  ${d.quarter.replace('FY-','')}  ${d.kpi_id}  ${(d.value===null||Number.isNaN(d.value))?'blank':d.value}`;
+  const by=r=>C.find(d=>d.rule.startsWith(r));
+  const L=[`<span class="c">$ run_quality_checks --cycle FY --importers 16</span>`,`<span class="m">  loaded ${D.n_values} values (16 importers x 14 KPIs x 4 quarters)</span>`,
+    `  R1 completeness ......... <span class="a">1 flagged</span>  ${f(by('R1'))}`,`  R2 plausible range ...... <span class="a">1 flagged</span>  ${f(by('R2'))}`,
+    `  R3 impossible zero ...... <span class="a">1 flagged</span>  ${f(by('R3'))}`,`  R4 outlier vs history ... <span class="a">1 flagged</span>  ${f(by('R4'))}`,
+    `<span class="m">  ${C.length} values excluded, each replaced by the importer's own mean of its other quarters</span>`,`  <span class="g">${C.length} of ${D.dq.injected.length} injected errors caught, 0 false alarms</span>`,`<span class="g">&#10003; CHECKS_COMPLETE</span>  <span class="m">scoring can start</span>`];
+  if(RM){out.innerHTML=L.join('\n');termBusy=false;return}
+  out.innerHTML='';let i=0;(function nx(){if(i>=L.length){termBusy=false;return}out.innerHTML=L.slice(0,i+1).join('\n')+(i<L.length-1?'\n<span class="cursor"></span>':'');i++;setTimeout(nx,i<3?380:520)})()}
+$('#term-run').addEventListener('click',runTerm);
 
-/* 6. data quality log */
-(function(){
-  let h='<table><tr><th>Importer</th><th>Quarter</th><th>KPI</th><th>Rule</th><th class="num">Value</th></tr>';
-  for(const d of D.dq.caught)h+=`<tr><td>${d.importer_id.replace('IMP','Importer ')}</td><td>${d.quarter.replace('FY-','')}</td><td>${d.kpi_id}</td><td>${({R1:'Completeness',R2:'Plausible range',R3:'Impossible zero',R4:'Outlier vs history'})[d.rule.slice(0,2)]}</td><td class="num">${(d.value===null||Number.isNaN(d.value))?'blank':d.value}</td></tr>`;
-  h+='</table><p class="small" style="margin-bottom:0">Excluded values are replaced by the importer\'s own mean of its other quarters and logged. A real process would send each one back to the importer for correction before the cycle closes.</p>';
-  $('#dq-log').innerHTML=h;
-})();
+/* KPI table */
+(function(){let h='<tr><th>Pillar</th><th>KPI</th><th>Definition</th><th class="num">Target</th><th class="num">Weight</th></tr>',last='';
+  for(const k of D.kpis){const first=k.pillar_id!==last;last=k.pillar_id;h+=`<tr><td>${first?`${sw(k.pillar_id)}<b>${k.pillar}</b><br><span class="small">pillar weight ${Math.round(D.pillars[k.pillar_id].weight*100)}%</span>`:''}</td><td>${k.kpi_id} ${k.kpi_name}${k.direction==='lower is better'?' <span class="small">(lower is better)</span>':''}</td><td style="color:var(--ink2);font-size:13px">${k.definition}</td><td class="num">${k.target}${k.unit==='%'?'%':''}</td><td class="num">${Math.round(k.weight_in_pillar*100)}%</td></tr>`}
+  $('#kpi-table').innerHTML=h})();
 
-/* 7. model diagram */
-(function(){
-  const box=(x,y,w,t,cols,fact)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${22+cols.length*17}" rx="6" fill="${fact?'#2b3034':'#1b1f21'}" stroke="${fact?'#929992':'#41484c'}"/><text x="${x+10}" y="${y+16}" font-size="12.5" font-weight="700" fill="#ece6d6">${t}</text>`;cols.forEach((c,i)=>s+=`<text x="${x+10}" y="${y+34+i*17}" font-size="11.5" fill="#c9c4b6">${c}</text>`);return s};
+/* ---------- stress test: Dirichlet Monte Carlo in the browser ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function randn(r){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function gamma(k,r){if(k<1)return gamma(k+1,r)*Math.pow(r(),1/k);const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=randn(r);v=1+c*x}while(v<=0);v=v*v*v;const u=r();if(u<1-.0331*x*x*x*x)return d*v;if(Math.log(u)<.5*x*x+d*(1-v+Math.log(v)))return d*v}}
+const SPREAD=[{c:80,l:'Tight'},{c:40,l:'Narrow'},{c:20,l:'Normal'},{c:10,l:'Wide'},{c:5,l:'Wild'}];
+function spreadLabel(){const s=SPREAD[+$('#mc-spread').value];const sd=Math.sqrt(.3*.7/(s.c+1))*100;$('#mc-spread-l').textContent=`${s.l}, about ±${Math.round(sd)} pts on the 30% pillar`}
+$('#mc-spread').addEventListener('input',spreadLabel);spreadLabel();
+const ELIG=D.importers.filter(i=>i.eligible);let mcBusy=false,mcRuns=0;
+function pct(h,n,q){let c=0;for(let r=1;r<h.length;r++){c+=h[r];if(c>=q*n)return r}return h.length-1}
+function drawSens(H,n){const e=ELIG.map(x=>({x,h:H[x.id],md:pct(H[x.id],n,.5),lo:pct(H[x.id],n,.05),hi:pct(H[x.id],n,.95)})).sort((a,b)=>a.md-b.md||a.lo-b.lo||b.x.total-a.x.total);
+  const W_=520,rh=22,m={l:92,r:14,t:24,b:28},Hh=m.t+m.b+rh*e.length,N=ELIG.length,iw=W_-m.l-m.r,X=r=>m.l+(r-1)/(N-1)*iw;
+  let s=`<svg viewBox="0 0 ${W_} ${Hh}" width="100%" role="img" aria-label="Rank range for each eligible importer under random weights">`;
+  for(let r=1;r<=N;r++)s+=`<line x1="${X(r)}" x2="${X(r)}" y1="${m.t-4}" y2="${Hh-m.b}" stroke="rgba(255,255,255,.05)"/><text x="${X(r)}" y="${Hh-10}" text-anchor="middle" font-size="10" fill="#93a1b5" font-family="JetBrains Mono,monospace">${r}</text>`;
+  e.forEach((d,i)=>{const y=m.t+i*rh+rh/2;s+=`<text x="${m.l-10}" y="${y+4}" text-anchor="end" font-size="11" fill="#fff" font-family="JetBrains Mono,monospace">${d.x.label}</text>`;
+    if(n){s+=`<line x1="${X(d.lo)}" x2="${X(d.hi)}" y1="${y}" y2="${y}" stroke="${i===0?'#e3091b':'#ffffff'}" stroke-width="7" stroke-linecap="round" opacity="${i===0?.5:.2}"><title>${d.x.label}: rank ${d.lo} to ${d.hi}, median ${d.md}</title></line><circle cx="${X(d.md)}" cy="${y}" r="4.5" fill="${i===0?'#ff4a4a':'#fff'}" stroke="#0d0d0f" stroke-width="2" ${i===0?'style="filter:drop-shadow(0 0 6px #e3091b)"':''}/>`}});
+  s+=`<text x="${m.l+iw/2}" y="${m.t-11}" text-anchor="middle" font-size="10.5" fill="#93a1b5" font-family="JetBrains Mono,monospace">rank among eligible importers (1 = best)</text></svg>`;
+  $('#chart-sens').innerHTML=s;return e}
+function runMC(){if(mcBusy)return;mcBusy=true;const N=5000,c=SPREAD[+$('#mc-spread').value].c,seed=20261115+mcRuns*7919;mcRuns++;
+  const rng=mulberry32(seed),alpha=PK.map(p=>c*D.pillars[p].weight),H={};ELIG.forEach(x=>H[x.id]=new Array(ELIG.length+1).fill(0));
+  let n=0;const per=RM?N:125;$('#mc-run').disabled=true;
+  (function chunk(){for(let j=0;j<per&&n<N;j++,n++){const g=alpha.map(a=>gamma(a,rng)),sg=g.reduce((a,b)=>a+b,0),w=g.map(x=>x/sg);
+      const t=ELIG.map(x=>({id:x.id,v:PK.reduce((a,p,i)=>a+x.pf[p]*w[i],0)})).sort((a,b)=>b.v-a.v);t.forEach((o,r)=>H[o.id][r+1]++)}
+    $('#mc-prog').innerHTML=`${n.toLocaleString('en')} <span>/ 5,000 draws</span>`;$('#mc-bar').style.width=(n/N*100)+'%';const e=drawSens(H,n);
+    if(n<N){requestAnimationFrame(chunk);return}
+    mcBusy=false;$('#mc-run').disabled=false;$('#mc-run').textContent='[ Run again, new seed ]';
+    const top=e[0],p1=H[top.x.id][1],moves=e.filter(d=>d.hi-d.lo>=2),t3=e.filter(d=>(d.h[1]+d.h[2]+d.h[3])/N>.5);
+    window.__mc={leader:top.x.label,p1,moves:moves.length};
+    $('#mc-read').innerHTML=`<li><b>${top.x.label}</b> is first in <b>${p1.toLocaleString('en')} of 5,000</b> draws.</li>`+
+      `<li>Top three (${t3.map(d=>d.x.label).join(', ')}) stay top three in at least <b>${Math.round(Math.min(...t3.map(d=>(d.h[1]+d.h[2]+d.h[3])/N))*100)}%</b> of draws.</li>`+
+      `<li><b>${moves.length} of ${e.length}</b> importers move two or more places across the 5th to 95th range${moves.length?': '+moves.slice(0,6).map(d=>d.x.label.replace('Importer ','')+' ('+d.lo+' to '+d.hi+')').join(', '):''}.</li>`+
+      `<li>Reading: the top of the table is robust; exact mid-table positions should not be presented as precise without saying they depend on the weights.</li>`})()}
+$('#mc-run').addEventListener('click',runMC);
+drawSens(Object.fromEntries(ELIG.map(x=>[x.id,new Array(ELIG.length+1).fill(0)])),0);
+$('#pillar-out').innerHTML=D.pillar_out.map(p=>`Without ${sw(p.dropped_pillar)}${D.pillars[p.dropped_pillar].name}: ${p.leader}${p.same_leader_as_base?' (unchanged)':' <b>(changed)</b>'}`).join('<br>');
+
+/* ---------- power bi ---------- */
+(function(){const box=(x,y,w,t,cols,fact)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${22+cols.length*17}" rx="8" fill="${fact?'#1a0a0c':'#0f0f12'}" stroke="${fact?'rgba(227,9,27,.6)':'rgba(255,255,255,.16)'}"/><text x="${x+10}" y="${y+16}" font-size="12" font-weight="800" fill="#fff" font-family="JetBrains Mono,monospace">${t}</text>`;cols.forEach((c,i)=>s+=`<text x="${x+10}" y="${y+34+i*17}" font-size="11" fill="rgba(255,255,255,.6)" font-family="JetBrains Mono,monospace">${c}</text>`);return s};
   let s='<svg viewBox="0 0 900 372" width="100%" role="img" aria-label="Star schema: fact_kpi_quarterly joined to dim_importer, dim_kpi and dim_quarter; dim_kpi joined to dim_pillar; fact_risk_gates joined to dim_importer; fact_scorecard is a computed output">';
-  const L=(x1,y1,x2,y2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5d6468" stroke-width="1.5"/>`;
+  const L=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="rgba(255,255,255,.25)" stroke-width="1.5"/>`;
   s+=L(235,70,350,150)+L(235,200,350,170)+L(665,70,550,150)+L(450,227,450,255)+L(127,110,127,150)+L(450,68,450,120)+L(772,110,772,160);
-  s+=box(20,20,215,'dim_importer',['importer_id','importer_label','market_tier','porsche_centres']);
-  s+=box(20,150,215,'fact_risk_gates',['importer_id','current_ratio','net_debt_to_ebitda','open_high_findings','gate_status'],1);
-  s+=box(350,120,200,'fact_kpi_quarterly',['importer_id','quarter','kpi_id','value','value_used'],1);
-  s+=box(665,20,215,'dim_kpi',['kpi_id','pillar_id','target, direction','weight_in_pillar']);
-  s+=box(665,160,215,'dim_pillar',['pillar_id','pillar','base_weight']);
-  s+=box(350,255,200,'fact_scorecard',['importer_id','pillar scores A to E','total_score, eligible'],1);
-  s+=box(350,12,200,'dim_quarter',['quarter','quarter_index']);
-  s+='<text x="450" y="362" text-anchor="middle" font-size="11" fill="#929992">Fact tables have grey outlines. fact_scorecard is a computed output that the measures recalculate in Power BI.</text></svg>';
-  $('#chart-model').innerHTML=s;
-})();
+  s+=box(20,20,215,'dim_importer',['importer_id','importer_label','market_tier','porsche_centres'])+box(20,150,215,'fact_risk_gates',['importer_id','current_ratio','net_debt_to_ebitda','open_high_findings','gate_status'],1)+box(350,120,200,'fact_kpi_quarterly',['importer_id','quarter','kpi_id','value','value_used'],1)+box(665,20,215,'dim_kpi',['kpi_id','pillar_id','target, direction','weight_in_pillar'])+box(665,160,215,'dim_pillar',['pillar_id','pillar','base_weight'])+box(350,255,200,'fact_scorecard',['importer_id','pillar scores A to E','total_score, eligible'],1)+box(350,12,200,'dim_quarter',['quarter','quarter_index']);
+  s+='<text x="450" y="362" text-anchor="middle" font-size="10.5" fill="#93a1b5" font-family="JetBrains Mono,monospace">fact tables outlined in red // fact_scorecard is recalculated by the measures</text></svg>';
+  $('#chart-model').innerHTML=s})();
+const lb=$('#lb');function openLB(src,alt){$('#lb-img').src=src;$('#lb-img').alt=alt||'';lb.showModal()}
+$('#shot-open').addEventListener('click',()=>openLB('img/powerbi-report.png','Power BI report page'));
+$$('[data-lb]').forEach(b=>b.addEventListener('click',()=>openLB(b.dataset.lb,b.querySelector('img').alt)));
+lb.addEventListener('click',e=>{if(e.target===lb)lb.close()});
+$('#copy-dax').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#dax').innerText);$('#copy-dax').textContent='Copied'}catch(e){$('#copy-dax').textContent='Select and copy'}setTimeout(()=>$('#copy-dax').textContent='Copy',1800)});
 
-buildControls();$('#gates').addEventListener('change',render);
-$('#reset').addEventListener('click',()=>{W={...base};buildControls();render()});
-render();
+/* ---------- garage: lineage ---------- */
+const GENS=[['911','1963 to 1973','Shown as the 901 at the 1963 IAA in Frankfurt; on sale from 1964.'],['G','1973 to 1989','The G-series brought the first turbocharged 911, in 1974.'],['964','1989 to 1994','The first 911 with all-wheel drive, in the Carrera 4.'],['993','1994 to 1998','The last 911 with air-cooled engines.'],['996','1998 to 2005','The first water-cooled 911.'],['997','2004 to 2012','Round headlights return, and the first dual-clutch gearbox in a 911. The car in my photos.'],['991','2011 to 2019','Aluminium-steel body, 80 kg lighter than its predecessor. The millionth 911 was one of these.'],['992','From 2019','An eight-speed dual-clutch gearbox with room for an electric motor.']];
+let gi=7;
+$('#gen-track').innerHTML=GENS.map((g,i)=>`<button type="button" role="tab" class="gen-btn" data-i="${i}"><span class="pt"></span><span class="cd">${g[0]}</span><span class="yr">${g[1].replace(' to ','–')}</span></button>`).join('');
+function renderGen(){$$('.gen-btn').forEach(b=>{const on=+b.dataset.i===gi;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1});const g=GENS[gi];
+  $('#gen-card').innerHTML=`<div class="big">${g[0]}</div><div><span class="yrs">Generation ${gi+1} of 8 // ${g[1]}</span><p>${g[2]}</p></div><div class="navs"><button class="btn sm" type="button" id="g-prev" aria-label="Previous generation">&lsaquo;</button><button class="btn sm" type="button" id="g-next" aria-label="Next generation">&rsaquo;</button></div>`;
+  $('#g-prev').addEventListener('click',()=>{gi=(gi+7)%8;renderGen()});$('#g-next').addEventListener('click',()=>{gi=(gi+1)%8;renderGen()})}
+$$('.gen-btn').forEach(b=>b.addEventListener('click',()=>{gi=+b.dataset.i;renderGen()}));
+$('#gen-track').addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key==='ArrowLeft'){gi=(gi+(e.key==='ArrowRight'?1:7))%8;renderGen();$(`.gen-btn[data-i="${gi}"]`).focus()}});
+renderGen();
+
+/* ---------- boot ---------- */
+renderDecomp();buildControls();sizeDials();showImporter(cur);setMode('normal');
+show(location.hash.slice(1)||'overview');
 </script>
 </body>
 </html>

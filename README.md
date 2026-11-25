@@ -6,8 +6,9 @@ Independent portfolio project by Amaan Khan. Not affiliated with Porsche.
 Regional delivery figures on the page come from Porsche's public press releases and are cited on the page.
 
 ## What is in here
-- `index.html` - the project page, laid out like a 911 instrument cluster: one dial per pillar (dial size = pillar weight), the 110% attainment cap shown as the limiter, and the three risk gates as warning lamps. Hosted on GitHub Pages.
-- `fonts/` - Archivo variable font (SIL Open Font License, see `fonts/OFL.txt`).
+- `index.html` - the project site in six views (Overview, Cockpit, Method, Stress test, Power BI, Garage). The cockpit is a 911-style cluster: one dial per pillar (dial size = pillar weight), the 110% cap as the limiter, risk gates as warning lamps, drive-mode weight presets and a KPI drill-down. The stress test re-runs the 5,000-draw Dirichlet test in the browser.
+- `img/` - photographs by Amaan Khan (number plate and bystander blurred) and the Power BI screenshot.
+- `fonts/` - Archivo, JetBrains Mono and Instrument Serif (SIL Open Font License; licence files included).
 - `build_model.py` - generates the synthetic data, runs data-quality rules, scores importers, runs the weight-sensitivity test, writes `data/`.
 - `data/*.csv` - star schema for Power BI: `dim_importer`, `dim_kpi`, `dim_pillar`, `dim_quarter`, `fact_kpi_quarterly`, `fact_risk_gates`, plus outputs `fact_scorecard`, `fact_weight_sensitivity`, `dq_log`.
 - `img/powerbi-report.png` - screenshot of the Power BI report page built from the CSVs.
@@ -26,6 +27,3 @@ Any red risk gate removes an importer from the award ranking. Weight sensitivity
 
 ## Run it
 `python3 build_model.py` (needs pandas and numpy).
-
-## Credits
-Hero photograph: [Jaddy Liu on Unsplash](https://unsplash.com/photos/a-white-car-on-a-road-at-night-S8lqZpUaQ2A), Unsplash License; the number plate is blurred on the page. 911 generation dates and firsts: Porsche newsroom, *60 years of the Porsche 911* press kit. Porsche, 911 and Carrera are trademarks of Dr. Ing. h.c. F. Porsche AG, named only to describe the subject; no Porsche logos are used.

@@ -9,6 +9,7 @@ Regional delivery figures on the page come from Porsche's public press releases 
 - `index.html` - the project page (self-contained; open it in a browser or host it on GitHub Pages).
 - `build_model.py` - generates the synthetic data, runs data-quality rules, scores importers, runs the weight-sensitivity test, writes `data/`.
 - `data/*.csv` - star schema for Power BI: `dim_importer`, `dim_kpi`, `dim_pillar`, `dim_quarter`, `fact_kpi_quarterly`, `fact_risk_gates`, plus outputs `fact_scorecard`, `fact_weight_sensitivity`, `dq_log`.
+- `img/powerbi-report.png` - screenshot of the Power BI report page built from the CSVs.
 - `measures.dax` - core measures. Built and run in Power BI Desktop; totals and eligible ranks for all 16 importers reconcile to `data/fact_scorecard.csv`.
 
 ## Load into Power BI Desktop

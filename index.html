@@ -186,6 +186,9 @@ footer{padding:44px 0 70px;color:var(--muted);font-size:14px}
   <h2>7 · Power BI model and migration plan</h2>
   <p class="sub">The page above is an HTML rendering of a Power BI-ready star schema. The CSVs and measures are in the downloads. The DAX below was built and run in Power BI Desktop, and the Total Score and eligible Rank for all 16 importers match the Python scores in <code>fact_scorecard.csv</code>.</p>
   <div class="card"><div id="chart-model"></div></div>
+  <div class="card"><h3 style="margin-top:0">The model, built in Power BI Desktop <span class="tag syn">SYNTHETIC DATA</span></h3>
+    <img src="img/powerbi-report.png" alt="Power BI report page: scorecard table, total score by importer coloured by risk gate (amber, green, red), risk-gate slicer, and pillar heatmap" style="width:100%;height:auto;border:1px solid var(--line);border-radius:8px">
+    <p class="small" style="margin-bottom:0">Screenshot of the report page I built from the seven CSVs. Total Score and eligible rank for all 16 importers match the Python scores. Importers 11 and 13 are RED on the risk gates, so they show a score but no rank. Importer data is synthetic.</p></div>
   <div class="grid2">
     <div class="card"><h3 style="margin-top:0">Core measures (DAX)</h3>
 <pre>KPI Attainment =
